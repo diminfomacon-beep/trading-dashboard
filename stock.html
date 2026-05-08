@@ -2,11 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Smart Trading System</title>
+<title>AlphaSync</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#0f172a">
+
+<link rel="apple-touch-icon" href="7629A9E9-076E-4EBF-A8FA-9A7727E79D59.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<meta name="apple-mobile-web-app-title" content="SignalForge">
 
 <style>
 
@@ -212,7 +222,10 @@ table{
 
 <body>
 
-<header>📈 Smart Trading System</header>
+<header>📈 AlphaSync</header>
+<button onclick="login()">
+    🔐 Login with Google
+</button>
 
 <div class="mobile-nav">
 
@@ -274,65 +287,58 @@ table{
 </div>
 
 <!-- PORTFOLIO -->
+<!-- PORTFOLIO -->
 <div id="portfolio" class="tab">
 
-    <!-- 📈 MAIN CHART AREA -->
-    <div class="card">
-
-        <h2>📈 Selected Stock Chart</h2>
-
-        <h3 id="selectedStock">Click a stock</h3>
-
-        <div id="mainChart" style="height:400px;"></div>
-
-    </div>
-
-    <!-- 💼 PORTFOLIO LIST -->
-   <div id="portfolio" class="tab">
-
-    <!-- 💼 PORTFOLIO SUMMARY -->
+    <!-- SUMMARY -->
     <div class="card">
 
         <h2>📊 Portfolio Summary</h2>
 
         <p>💰 Invested: $<span id="totalInvested">0</span></p>
+
         <p>📊 Current Value: $<span id="totalValue">0</span></p>
-        <p class="green">📈 P/L: $<span id="totalPL">0</span></p>
-        <p class="green">📈 Return: <span id="totalReturn">0</span>%</p>
+
+        <p class="green">
+            📈 P/L: $<span id="totalPL">0</span>
+        </p>
+
+        <p class="green">
+            📈 Return: <span id="totalReturn">0</span>%
+        </p>
 
     </div>
 
-    <!-- 💼 PORTFOLIO LIST -->
+    <!-- PORTFOLIO LIST -->
     <div class="card">
 
         <h2>💼 My Portfolio</h2>
-        <p>Click a stock to view its chart</p>
+
+        <p>Tap a stock to open fullscreen chart</p>
+        <h3 id="selectedStock" style="display:none;"></h3>
 
         <div id="portfolioCards"></div>
 
     </div>
 
-    <!-- ➕ ADD POSITION -->
+    <!-- ADD POSITION -->
     <div class="card">
 
         <h2>➕ Add Position</h2>
 
         <input id="pSymbol" placeholder="AAPL">
-        <input id="pShares" type="number" placeholder="Shares">
-        <input id="pPrice" type="number" placeholder="Buy Price">
 
-        <button onclick="addPortfolioStock()">Add / Merge</button>
+        <input id="pShares"
+               type="number"
+               placeholder="Shares">
 
-    </div>
+        <input id="pPrice"
+               type="number"
+               placeholder="Buy Price">
 
-    <!-- 📈 CHART (BOTTOM ONLY) -->
-    <div class="card">
-
-        <h2>📈 Selected Stock Chart</h2>
-
-        <h3 id="selectedStock">Click a stock</h3>
-
-        <div id="mainChart" style="height:400px;"></div>
+        <button onclick="addPortfolioStock()">
+            Add / Merge
+        </button>
 
     </div>
 
@@ -351,8 +357,94 @@ table{
     </div>
 
 </div>
+<!-- FULLSCREEN CHART MODAL -->
+<div id="chartModal"
+     style="display:none;"
+     onclick="closeChartModal(event)">
+
+    <div id="chartModalContent">
+
+        <button id="closeChartBtn"
+                onclick="closeChartModal(event)">
+            ✕
+        </button>
+
+        <h2 id="selectedStockModal"></h2>
+
+        <div id="mainChartModal"
+             style="flex:1;">
+        </div>
+
+    </div>
+
+</div>
+
+
+  <script type="module">
+
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+      import {
+          getAuth,
+          GoogleAuthProvider,
+          signInWithPopup,
+          onAuthStateChanged
+      } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+      import {
+          getFirestore,
+          doc,
+          setDoc,
+          getDoc
+      } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+
+          apiKey: "AIzaSyDWY98CaQD6pdt_KQHRnHHSzhjItFNutBk",
+
+          authDomain: "trading-app-847e3.firebaseapp.com",
+
+          projectId: "trading-app-847e3",
+
+          storageBucket: "trading-app-847e3.firebasestorage.app",
+
+          messagingSenderId: "369458346233",
+
+          appId: "1:369458346233:web:1cf817dcb8005d013e0a28",
+
+          measurementId: "G-WRNH098G04"
+      };
+
+      const app = initializeApp(firebaseConfig);
+
+      const auth = getAuth(app);
+
+      const db = getFirestore(app);
+
+      const provider = new GoogleAuthProvider();
+
+      window.auth = auth;
+      window.db = db;
+      window.provider = provider;
+
+      window.signInWithPopup = signInWithPopup;
+      window.onAuthStateChanged = onAuthStateChanged;
+
+      window.doc = doc;
+      window.setDoc = setDoc;
+      window.getDoc = getDoc;
+
+      console.log("🔥 Firebase Ready");
+
+window.login = login;
+window.loadUserData = loadUserData;
+window.saveUserData = saveUserData;
+
+</script>
 
 <script>
+
+
 
 const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
 
@@ -360,6 +452,8 @@ let watchlist = [];
 let portfolio = [];
 let alerts = [];
 let hasInitializedChart = false;
+let selectedStock = "";
+
 
 /* ---------------- TABS ---------------- */
 function showTab(tab){
@@ -401,11 +495,13 @@ function addToWatchlistFromInput(){
     }
 
     renderWatchlist();
+    saveUserData();
 }
 
 function removeWatch(i){
     watchlist.splice(i,1);
     renderWatchlist();
+    saveUserData();
 }
 
 async function updateWatchlist(){
@@ -512,11 +608,7 @@ function renderWatchlist(){
     <!-- TREND BAR -->
     <td>
         <div style="width:80px;background:#334155;height:8px;border-radius:6px;">
-            <div style="
-                width:${s.trendScore || 0}%;
-                background:#3b82f6;
-                height:100%;
-            "></div>
+            <div style="width:${s.trendScore || 0}%;background:#3b82f6;height:100%;"></div>
         </div>
     </td>
 
@@ -619,6 +711,59 @@ function renderTopStocks(){
 
     `).join("");
 }
+async function login(){
+
+    try{
+
+        const result =
+            await signInWithPopup(auth, provider);
+
+        const user = result.user;
+
+        alert(`Logged in as ${user.displayName}`);
+
+        loadUserData(user.uid);
+
+    }catch(err){
+
+        console.error(err);
+    }
+}
+async function loadUserData(uid){
+
+    const ref = doc(db, "users", uid);
+
+    const snap = await getDoc(ref);
+
+    if(snap.exists()){
+
+        const data = snap.data();
+
+        portfolio = data.portfolio || [];
+
+        watchlist = data.watchlist || [];
+    }
+
+    renderPortfolio();
+
+    renderWatchlist();
+
+    masterUpdate();
+}
+async function saveUserData(){
+
+    const user = auth.currentUser;
+
+    if(!user) return;
+
+    await setDoc(
+        doc(db, "users", user.uid),
+        {
+            portfolio,
+            watchlist
+        }
+    );
+}
 
 /* ---------------- PORTFOLIO ---------------- */
 async function addPortfolioStock(){
@@ -652,6 +797,7 @@ async function addPortfolioStock(){
     }
 
     renderPortfolio();
+    saveUserData();
 }
 
 async function updatePortfolio(){
@@ -664,6 +810,7 @@ async function updatePortfolio(){
 
         p.pl = (p.current - p.buyPrice)*p.shares;
     }
+    saveUserData();
 }
 
 
@@ -674,18 +821,26 @@ function renderPortfolio(){
     portfolio.map(p=>`
 
         <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}"
-            onclick="selectStock('${p.symbol}')"
-            style="cursor:pointer;">
+            onclick="selectStock('${p.symbol}')">
 
             <h2>${p.symbol}</h2>
 
             <p>Shares: ${p.shares}</p>
+
             <p>Avg: $${p.buyPrice.toFixed(2)}</p>
+
             <p>Current: $${p.current.toFixed(2)}</p>
 
             <p class="${p.pl>=0?'green':'red'}">
                 P/L: $${p.pl.toFixed(2)}
             </p>
+
+            <button onclick="
+                event.stopPropagation();
+                removePortfolio('${p.symbol}')
+            ">
+                ❌ Remove
+            </button>
 
         </div>
 
@@ -698,6 +853,15 @@ function renderPortfolio(){
 
         selectStock(portfolio[0].symbol);
     }
+}
+function removePortfolio(symbol){
+
+    portfolio =
+        portfolio.filter(p => p.symbol !== symbol);
+
+    renderPortfolio();
+
+    saveUserData();
 }
 function openChartModal(symbol){
 
@@ -836,6 +1000,7 @@ function addToWatchlist(symbol){
 
     // force immediate update
     updateWatchlist();
+    saveUserData();
 }
 function getSuggestion(dp){
 
@@ -940,6 +1105,7 @@ setInterval(masterUpdate,10000);
 
 /* ---------------- INIT ---------------- */
 showTab("dashboard");
+masterUpdate();
 
 </script>
 
