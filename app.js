@@ -73,6 +73,31 @@ function removeSymbol(symbol) {
   renderWatchlist();
 }
 
+async function getPrice() {
+  const symbol = document
+    .getElementById("symbol")
+    .value
+    .trim()
+    .toUpperCase();
+
+  const priceElement = document.getElementById("price");
+
+  if (!symbol) {
+    priceElement.innerText = "Enter a symbol";
+    return;
+  }
+
+  try {
+    const data = await getStock(symbol);
+
+    priceElement.innerText =
+      `${symbol}: $${data.c} (${data.dp}%)`;
+
+  } catch (err) {
+    priceElement.innerText = "Error loading stock";
+  }
+}
+
 // INIT (IMPORTANT)
 window.onload = function () {
   renderWatchlist();
