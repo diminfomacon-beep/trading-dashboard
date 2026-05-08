@@ -5,6 +5,7 @@ let symbols = ["AAPL", "TSLA", "MSFT"];
 let balance = 10000;
 let journal = [];
 let positions = [];
+let equityHistory = [];
 
 // ADD STOCK
 function addSymbol() {
@@ -353,6 +354,51 @@ function analyzeMistakes() {
     ? insights.map(i => `<p>${i}</p>`).join("")
     : "<p>✅ No major mistakes detected yet. Keep trading with discipline.</p>";
 }
+let equityChart;
+
+function initEquityChart() {
+
+  const ctx = document.getElementById("equityChart").getContext("2d");
+
+  equityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Account Balance",
+        data: [],
+        borderColor: "green",
+        fill: false,
+        tension: 0.2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: false
+        }
+      }
+    }
+  });
+}
+function updateEquityCurve() {
+
+  equityHistory.push(balance);
+
+  // keep it lightweight
+  if (equityHistory.length > 50) {
+    equityHistory.shift();
+  }
+
+  const labels = equityHistory.map((_, i) => i + 1);
+
+  equityChart.data.labels = labels;
+  equityChart.data.datasets[0].data = equityHistory;
+
+  equityChart.update();
+}
+
 setInterval(async () => {
 
   // MARKET DATA UPDATES
@@ -365,10 +411,16 @@ setInterval(async () => {
   renderPositions();
   renderJournal();
   analyzeMistakes();
+  updateEquityCurve();
 
 }, 5000);
 
 // INIT (IMPORTANT)
 window.onload = function () {
   renderWatchlist();
+  renderPositions();
+  renderJournal();
+  analyzeMistakes();
+  initEquityChart();
 };
+
