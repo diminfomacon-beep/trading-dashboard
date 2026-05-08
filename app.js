@@ -19,6 +19,28 @@ let strategyConfig = {
   minScore: 75,
   maxRisk: 1
 };
+let strategies = [
+  {
+    name: "Conservative",
+    minChange: 1,
+    minScore: 80,
+    maxRisk: 0.5
+  },
+  {
+    name: "Balanced",
+    minChange: 0.5,
+    minScore: 75,
+    maxRisk: 1
+  },
+  {
+    name: "Aggressive",
+    minChange: 0.2,
+    minScore: 60,
+    maxRisk: 2
+  }
+];
+
+
 
 
 // ADD STOCK
@@ -925,6 +947,99 @@ function saveStrategy() {
   document.getElementById("strategyActive").innerText =
     `Active Strategy → Change %: ${strategyConfig.minChange}, Score: ${strategyConfig.minScore}, Risk: ${strategyConfig.maxRisk}%`;
 }
+async function evaluateWithStrategy(symbol, strategy) {
+
+  const data = await getStock(symbol);
+  const price = data.c;
+
+  const changePercent = Math.abs(data.dp || 0);
+
+  let score = 50;
+
+  if (changePercent > 1) score += 20;
+  if (changePercent > 0.5) score += 10;
+  if (changePercent < 0.2) score -= 20;
+
+  if (price < 5) score -= 15;
+
+  // apply strategy rules
+  if (changePercent > strategy.minChange) {
+    score += 15;
+  } else {
+    score -= 10;
+  }
+
+  if (score > 100) score = 100;
+  if (score < 0) score = 0;
+
+  let signal = "AVOID";
+
+  if (score >= strategy.minScore) {
+    signal = "BUY";
+  } else if (score >= 50) {
+    signal = "WATCH";
+  }
+
+  return {
+    symbol,
+    price,
+    score,
+    signal
+  };
+}
+
+async function runStrategyComparison() {
+
+  const container = document.getElementById("strategyResults");
+  container.innerHTML = "Running comparison...";
+
+  let results = [];
+
+  for (let strategy of strategies) {
+
+    let totalScore = 0;
+    let buySignals = 0;
+
+    for (let symbol of symbols) {
+
+      const result = await evaluateWithStrategy(symbol, strategy);
+
+      totalScore += result.score;
+
+      if (result.signal === "BUY") {
+        buySignals++;
+      }
+    }
+
+    results.push({
+      name: strategy.name,
+      avgScore: totalScore / symbols.length,
+      buySignals
+    });
+  }
+
+  // sort best first
+  results.sort((a, b) => b.avgScore - a.avgScore);
+
+  // display results
+  container.innerHTML = "";
+
+  results.forEach((r, index) => {
+
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+      <h3>${index + 1}. ${r.name}</h3>
+      <p>Average Score: ${r.avgScore.toFixed(2)}</p>
+      <p>BUY Signals: ${r.buySignals}</p>
+      <hr>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+
 
 setInterval(async () => {
 
