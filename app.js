@@ -100,7 +100,8 @@ async function getPrice() {
     priceElement.innerText = "Error loading stock";
   }
 }
-async function buyStock() {
+
+  async function buyStock() {
 
   const symbol = document
     .getElementById("tradeSymbol")
@@ -112,7 +113,11 @@ async function buyStock() {
     document.getElementById("tradeShares").value
   );
 
-  if (!symbol || !shares) return;
+  const stopLoss = parseFloat(
+    document.getElementById("tradeStop").value
+  );
+
+  if (!symbol || !shares || !stopLoss) return;
 
   const data = await getStock(symbol);
   const price = data.c;
@@ -125,24 +130,34 @@ async function buyStock() {
     return;
   }
 
-  // 2. RISK CHECK (THIS IS THE IMPORTANT ADDITION)
+  // 2. REAL RISK CALCULATION
   const riskAmount = balance * 0.01; // 1% rule
-  const riskPerShare = 5; // (temporary fixed value)
 
-  const totalRisk = shares * riskPerShare;
+  const riskPerShare = price - stopLoss;
 
-  if (totalRisk > riskAmount) {
-    alert("Trade rejected: risk too high");
+  if (riskPerShare <= 0) {
+    alert("Stop-loss must be below entry price");
     return;
   }
 
-  // 3. EXECUTE TRADE
+  const totalRisk = riskPerShare * shares;
+
+  // 3. RISK VALIDATION
+  if (totalRisk > riskAmount) {
+    alert(
+      `Trade rejected.\nRisk: $${totalRisk.toFixed(2)} exceeds allowed $${riskAmount.toFixed(2)}`
+    );
+    return;
+  }
+
+  // 4. EXECUTE TRADE
   balance -= totalCost;
 
   positions.push({
     symbol,
     shares,
-    entry: price
+    entry: price,
+    stopLoss: stopLoss
   });
 
   updateBalance();
