@@ -455,7 +455,11 @@ let alerts = [];
 let hasInitializedChart = false;
 let selectedStock = "";
 
-
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        loadUserData(user.uid);
+    }
+});
 /* ---------------- TABS ---------------- */
 function showTab(tab){
     document.querySelectorAll(".tab")
@@ -520,6 +524,9 @@ async function updateWatchlist(){
         s.strengthScore = getStrengthScore(d.dp);
 
         s.suggestion = getSuggestion(d.dp);
+    }
+    if (auth.currentUser) {
+    await saveUserData();
     }
 }
 function getTrendScore(dp){
@@ -713,21 +720,15 @@ function renderTopStocks(){
     `).join("");
 }
 async function login(){
-
-    try{
-
-        const result =
-            await signInWithPopup(auth, provider);
-
+    try {
+        const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
         alert(`Logged in as ${user.displayName}`);
 
-        loadUserData(user.uid);
 
-    }catch(err){
-
-        console.error(err);
+    } catch (err) {
+        console.error("Login error:", err);
     }
 }
 async function loadUserData(uid){
@@ -811,7 +812,9 @@ async function updatePortfolio(){
 
         p.pl = (p.current - p.buyPrice)*p.shares;
     }
-    saveUserData();
+    if (auth.currentUser) {
+    await saveUserData();
+    }
 }
 
 
