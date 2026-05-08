@@ -35,29 +35,60 @@ header{
     font-weight:bold;
 }
 
-.tabs{
-    display:flex;
-    background:#1e293b;
-}
+body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding-bottom: 50px;
+    }
 
-.tabs button{
-    flex:1;
-    padding:15px;
-    border:none;
-    background:#1e293b;
-    color:white;
-    cursor:pointer;
-}
+    .tabs {
+      display: flex;
+      flex-wrap: wrap; /* Allows buttons to wrap on small screens */
+      gap: 10px;
+      padding: 15px;
+      background: #111827;
+      position: sticky;
+      top: 0;
+      z-index: 9999; /* Higher z-index to stay on top */
+      border-bottom: 2px solid #1e293b;
+      pointer-events: auto; /* Force clicks to work */
+    }
 
-.tabs button:hover{
-    background:#334155;
-}
+    .tabs button {
+      background: #1f2937;
+      color: white;
+      border: 1px solid #334155;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-.tab{
-    display:none;
-    padding:20px;
-}
+    .tabs button:hover {
+      background: #374151;
+      border-color: #60a5fa;
+    }
 
+    .tab {
+      display: none; /* Hidden by default */
+      padding: 20px;
+      position: relative; /* Ensure it stays in the document flow */
+      z-index: 1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    td, th {
+      border: 1px solid #334155;
+      padding: 12px;
+      text-align: left;
+    }
 .card{
     background:#1e293b;
     padding:20px;
