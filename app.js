@@ -1,7 +1,17 @@
 const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
 
 
-let symbols = ["AAPL", "TSLA", "MSFT"];
+let symbols = [
+  "AAPL",
+  "MSFT",
+  "NVDA",
+  "AMZN",
+  "GOOGL",
+  "TSLA",
+  "META",
+  "AMD",
+  "SPY"
+];
 let balance = 10000;
 let journal = [];
 let positions = [];
