@@ -124,7 +124,13 @@ async function buyStock() {
     alert("Not enough balance");
     return;
   }
+const riskAmount = balance * 0.01;
+const riskPerShare = 5; // example OR calculate dynamically
 
+if (shares * riskPerShare > riskAmount) {
+  alert("Trade rejected: risk too high");
+  return;
+}
   balance -= totalCost;
 
   positions.push({
@@ -172,6 +178,40 @@ setInterval(() => {
   renderWatchlist();
   renderPositions();
 }, 10000);
+function calculateRisk() {
+
+  const entry = parseFloat(
+    document.getElementById("riskEntry").value
+  );
+
+  const stop = parseFloat(
+    document.getElementById("riskStop").value
+  );
+
+  let balanceInput = document.getElementById("riskBalance").value;
+
+  const balanceToUse = balanceInput
+    ? parseFloat(balanceInput)
+    : balance;
+
+  if (!entry || !stop || stop >= entry) {
+    document.getElementById("riskResult").innerText =
+      "Invalid inputs (stop must be below entry)";
+    return;
+  }
+
+  // 1% risk rule
+  const riskAmount = balanceToUse * 0.01;
+
+  const riskPerShare = entry - stop;
+
+  const shares = Math.floor(riskAmount / riskPerShare);
+
+  const maxLoss = shares * riskPerShare;
+
+  document.getElementById("riskResult").innerText =
+    `Buy up to ${shares} shares | Max Loss: $${maxLoss.toFixed(2)}`;
+}
 
 // INIT (IMPORTANT)
 window.onload = function () {
