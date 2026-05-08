@@ -291,15 +291,82 @@ function renderJournal() {
     table.appendChild(row);
   });
 }
-setInterval(() => {
-  checkStopLosses();
+function analyzeMistakes() {
+
+  const insights = [];
+
+  if (journal.length === 0) {
+    document.getElementById("insights").innerText =
+      "No trades yet to analyze.";
+    return;
+  }
+
+  let totalLoss = 0;
+  let totalWin = 0;
+  let wins = 0;
+  let losses = 0;
+
+  journal.forEach(t => {
+    if (t.pl >= 0) {
+      wins++;
+      totalWin += t.pl;
+    } else {
+      losses++;
+      totalLoss += t.pl;
+    }
+  });
+
+  const winRate = (wins / journal.length) * 100;
+
+  // 🧠 RULE 1: Low win rate
+  if (winRate < 40) {
+    insights.push("⚠️ Low win rate — you may be entering low-quality setups.");
+  }
+
+  // 🧠 RULE 2: Losses larger than wins
+  if (Math.abs(totalLoss) > totalWin) {
+    insights.push("⚠️ Your losses are larger than your wins — improve risk control.");
+  }
+
+  // 🧠 RULE 3: Overtrading detection
+  if (journal.length > 10) {
+    const last5 = journal.slice(-5);
+    const allLosses = last5.every(t => t.pl < 0);
+
+    if (allLosses) {
+      insights.push("⚠️ Possible revenge trading or emotional trading detected.");
+    }
+  }
+
+  // 🧠 RULE 4: Cutting winners too early
+  const avgWin = totalWin / (wins || 1);
+  const avgLoss = Math.abs(totalLoss / (losses || 1));
+
+  if (avgWin < avgLoss) {
+    insights.push("⚠️ You are letting losses run longer than winners.");
+  }
+
+  // DISPLAY RESULTS
+  const panel = document.getElementById("insights");
+
+  panel.innerHTML = insights.length
+    ? insights.map(i => `<p>${i}</p>`).join("")
+    : "<p>✅ No major mistakes detected yet. Keep trading with discipline.</p>";
+}
+setInterval(async () => {
+
+  // MARKET DATA UPDATES
+  await renderWatchlist();
+
+  // TRADING SYSTEM LOGIC
+  await checkStopLosses();
+
+  // UI UPDATES (run once)
   renderPositions();
   renderJournal();
+  analyzeMistakes();
+
 }, 5000);
-setInterval(() => {
-  renderWatchlist();
-  renderPositions();
-}, 10000);
 
 // INIT (IMPORTANT)
 window.onload = function () {
