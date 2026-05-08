@@ -115,22 +115,28 @@ async function buyStock() {
   if (!symbol || !shares) return;
 
   const data = await getStock(symbol);
-
   const price = data.c;
 
   const totalCost = price * shares;
 
+  // 1. BALANCE CHECK
   if (totalCost > balance) {
     alert("Not enough balance");
     return;
   }
-const riskAmount = balance * 0.01;
-const riskPerShare = 5; // example OR calculate dynamically
 
-if (shares * riskPerShare > riskAmount) {
-  alert("Trade rejected: risk too high");
-  return;
-}
+  // 2. RISK CHECK (THIS IS THE IMPORTANT ADDITION)
+  const riskAmount = balance * 0.01; // 1% rule
+  const riskPerShare = 5; // (temporary fixed value)
+
+  const totalRisk = shares * riskPerShare;
+
+  if (totalRisk > riskAmount) {
+    alert("Trade rejected: risk too high");
+    return;
+  }
+
+  // 3. EXECUTE TRADE
   balance -= totalCost;
 
   positions.push({
@@ -212,6 +218,35 @@ function calculateRisk() {
   document.getElementById("riskResult").innerText =
     `Buy up to ${shares} shares | Max Loss: $${maxLoss.toFixed(2)}`;
 }
+async function checkStopLosses() {
+
+  for (let i = positions.length - 1; i >= 0; i--) {
+
+    const pos = positions[i];
+    const data = await getStock(pos.symbol);
+    const price = data.c;
+
+    // STOP LOSS TRIGGER
+    if (price <= pos.stopLoss) {
+
+      const loss = (price - pos.entry) * pos.shares;
+
+      balance += price * pos.shares;
+
+      alert(
+        `${pos.symbol} STOP LOSS HIT\nLoss: $${loss.toFixed(2)}`
+      );
+
+      positions.splice(i, 1);
+    }
+  }
+
+  updateBalance();
+  renderPositions();
+}
+setInterval(() => {
+  checkStopLosses();
+}, 5000);
 
 // INIT (IMPORTANT)
 window.onload = function () {
