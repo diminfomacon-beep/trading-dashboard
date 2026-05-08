@@ -17,11 +17,26 @@ function addSymbol() {
 
 // Fetch stock data
 async function getStock(symbol) {
-  const res = await fetch(
-    `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`
-  );
+  try {
+    const res = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`
+    );
 
-  return await res.json();
+    const data = await res.json();
+
+    return {
+      c: data.c ?? 0,
+      d: data.d ?? 0,
+      dp: data.dp ?? 0
+    };
+
+  } catch (error) {
+    return {
+      c: 0,
+      d: 0,
+      dp: 0
+    };
+  }
 }
 
 // Render watchlist
@@ -29,8 +44,11 @@ async function renderWatchlist() {
   const table = document.getElementById("watchlist");
   table.innerHTML = "";
 
-  for (let symbol of symbols) {
-    const data = await getStock(symbol);
+  const requests = symbols.map(symbol => getStock(symbol));
+  const results = await Promise.all(requests);
+
+  results.forEach((data, index) => {
+    const symbol = symbols[index];
 
     const row = document.createElement("tr");
 
@@ -42,7 +60,8 @@ async function renderWatchlist() {
     `;
 
     table.appendChild(row);
-  }
+  });
+}
 }
 
 // Remove stock
