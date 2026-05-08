@@ -2,249 +2,229 @@
 <html>
 <head>
   <title>Trading Dashboard</title>
+
   <link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      background: #111827;
+      position: sticky;
+      top: 0;
+    }
+
+    .tabs button {
+      background: #1f2937;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .tabs button:hover {
+      background: #374151;
+    }
+
+    .tab {
+      display: none;
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td, th {
+      border: 1px solid #334155;
+      padding: 8px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <h1>📈 My Trading App</h1>
+<h1 style="padding:10px;">📈 Trading Dashboard</h1>
 
-  <!-- SINGLE STOCK VIEW -->
-  <div>
-    <input id="symbol" placeholder="Enter stock (AAPL)">
-    <button onclick="getPrice()">Get Price</button>
-    <h2 id="price">--</h2>
-  </div>
+<!-- NAV -->
+<div class="tabs">
+  <button onclick="showTab('market')">📊 Market</button>
+  <button onclick="showTab('portfolio')">💼 Portfolio</button>
+  <button onclick="showTab('strategy')">🧠 Strategy</button>
+  <button onclick="showTab('backtest')">🧪 Backtest</button>
+  <button onclick="showTab('signals')">🤖 Signals</button>
+  <button onclick="showTab('analytics')">📈 Analytics</button>
+</div>
+
+<!-- ================= MARKET ================= -->
+<div id="market" class="tab">
+
+  <h2>📊 Market</h2>
+
+  <input id="symbol" placeholder="Enter stock (AAPL)">
+  <button onclick="getPrice()">Get Price</button>
+  <h2 id="price">--</h2>
 
   <hr>
 
-  <!-- WATCHLIST -->
-  <h1>📊 Live Watchlist</h1>
+  <h3>📊 Watchlist</h3>
 
-  <div>
-    <input id="symbolInput" placeholder="Add stock (AAPL)">
-    <button onclick="addSymbol()">Add</button>
-  </div>
+  <input id="symbolInput" placeholder="Add stock">
+  <button onclick="addSymbol()">Add</button>
 
   <table>
-    <thead>
-      <tr>
-        <th>Symbol</th>
-        <th>Price</th>
-        <th>Change</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-
     <tbody id="watchlist"></tbody>
   </table>
-  
-  <h2>📈 Live Chart</h2>
 
-<div class="tradingview-widget-container">
+  <h3>📈 Chart</h3>
   <div id="tradingview_chart"></div>
+
 </div>
-<hr>
 
-<h1>💰 Paper Trading</h1>
+<!-- ================= PORTFOLIO ================= -->
+<div id="portfolio" class="tab">
 
-<div id="paperTrading">
+  <h2>💼 Portfolio</h2>
 
-  <h2>Balance: $<span id="balance">10000</span></h2>
+  <h3>Balance: $<span id="balance">10000</span></h3>
 
-  <input id="tradeSymbol" placeholder="Symbol (AAPL)">
+  <input id="tradeSymbol" placeholder="Symbol">
   <input id="tradeShares" type="number" placeholder="Shares">
+  <input id="tradeStop" placeholder="Stop Loss">
+  <input id="tradeTakeProfit" placeholder="Take Profit">
 
   <button onclick="buyStock()">Buy</button>
-  <hr>
-
-<h2>⚠️ Risk Calculator</h2>
-
-<input id="riskEntry" placeholder="Entry Price">
-<input id="riskStop" placeholder="Stop Loss">
-<input id="riskBalance" placeholder="Account Balance (optional)">
-
-<button onclick="calculateRisk()">Calculate</button>
-
-<h3 id="riskResult">--</h3>
-<input id="tradeStop" placeholder="Stop Loss Price">
-
-</div>
-<input id="tradeTakeProfit" placeholder="Take Profit Price">
-<hr>
-
-<h2>🧠 Strategy Engine</h2>
-
-<p>Status: <span id="strategyStatus">Waiting for trade...</span></p>
-
-<h2>📦 Open Positions</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Symbol</th>
-      <th>Shares</th>
-      <th>Entry</th>
-      <th>Current</th>
-      <th>P/L</th>
-    </tr>
-  </thead>
-
-  <tbody id="positions"></tbody>
-</table>
-<hr>
-<input id="tradeStop" placeholder="Stop Loss Price">
-<h2>🧠 Trade Journal</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Symbol</th>
-      <th>Entry</th>
-      <th>Exit</th>
-      <th>Shares</th>
-      <th>P/L</th>
-      <th>Result</th>
-    </tr>
-  </thead>
-
-  <tbody id="journal"></tbody>
-</table>
 
   <hr>
 
-<h2>🧠 Trading Insights</h2>
+  <h3>📦 Positions</h3>
+  <table>
+    <tbody id="positions"></tbody>
+  </table>
 
-<div id="insights">
-  <p>Analyzing your trades...</p>
+  <h3>🧾 Trade Journal</h3>
+  <table>
+    <tbody id="journal"></tbody>
+  </table>
+
 </div>
-<hr>
 
-<h2>📊 Equity Curve</h2>
+<!-- ================= STRATEGY ================= -->
+<div id="strategy" class="tab">
 
-<canvas id="equityChart" width="400" height="200"></canvas>
-  
+  <h2>🧠 Strategy Engine</h2>
+
+  <p>Status: <span id="strategyStatus">Waiting...</span></p>
+
+  <h3>Strategy Builder</h3>
+
+  <input id="minChange" placeholder="Min Change %">
+  <input id="minScore" placeholder="Min Score">
+  <input id="maxRisk" placeholder="Max Risk %">
+
+  <button onclick="saveStrategy()">Save Strategy</button>
+
+  <p id="strategyActive"></p>
+
   <hr>
 
-<h2>📊 Performance Stats</h2>
+  <h3>📊 Multi-Strategy Comparison</h3>
+  <button onclick="runStrategyComparison()">Run Comparison</button>
+  <div id="strategyResults"></div>
 
-<div id="stats">
-  <p>Total Trades: <span id="statTrades">0</span></p>
-  <p>Win Rate: <span id="statWinRate">0%</span></p>
-  <p>Total P/L: $<span id="statPL">0</span></p>
-  <p>Avg Win: $<span id="statAvgWin">0</span></p>
-  <p>Avg Loss: $<span id="statAvgLoss">0</span></p>
-  <p>Profit Factor: <span id="statPF">0</span></p>
+  <h3>🧠 Optimizer</h3>
+  <button onclick="runOptimizer()">Optimize</button>
+  <div id="optimizerResults"></div>
+
 </div>
-<hr>
 
-<h2>🧠 Trading Discipline Score</h2>
+<!-- ================= BACKTEST ================= -->
+<div id="backtest" class="tab">
 
-<h1 id="tradingScore">--</h1>
+  <h2>🧪 Backtesting</h2>
 
-<p id="scoreMessage">Waiting for analysis...</p>
+  <button onclick="runBacktest()">Run Backtest</button>
+  <p id="backtestStatus">Idle</p>
 
-<hr>
+  <h3>Results</h3>
+  <p>Trades: <span id="btTrades">0</span></p>
+  <p>Balance: $<span id="btBalance">0</span></p>
+  <p>Win Rate: <span id="btWinRate">0%</span></p>
+  <p>P/L: $<span id="btPL">0</span></p>
 
-<h2>📉 Drawdown Protection</h2>
+  <hr>
 
-<p>Peak Balance: $<span id="peakBalance">10000</span></p>
-<p>Drawdown: <span id="drawdownPercent">0%</span></p>
+  <h3>🔁 Replay Mode</h3>
+  <button onclick="startRecording()">Record</button>
+  <button onclick="startReplay()">Replay</button>
+  <button onclick="resetReplay()">Reset</button>
 
-<p id="drawdownStatus">Status: Active</p>
+  <p id="replayStatus">Idle</p>
 
-<hr>
+</div>
 
-<h2>🔁 Replay / Backtest Mode</h2>
+<!-- ================= SIGNALS ================= -->
+<div id="signals" class="tab">
 
-<button onclick="startRecording()">Start Recording</button>
-<button onclick="startReplay()">Replay</button>
-<button onclick="resetReplay()">Reset</button>
+  <h2>🤖 Trade Signals</h2>
 
-<p id="replayStatus">Status: Idle</p>
+  <button onclick="generateSignals()">Scan Market</button>
 
-<hr>
+  <div id="signals"></div>
 
-<h2>🧪 Backtesting Engine</h2>
+</div>
 
-<button onclick="runBacktest()">Run Backtest</button>
+<!-- ================= ANALYTICS ================= -->
+<div id="analytics" class="tab">
 
-<p id="backtestStatus">Status: Idle</p>
+  <h2>📈 Analytics</h2>
 
-<h3>Result</h3>
-<p>Total Trades: <span id="btTrades">0</span></p>
-<p>Final Balance: $<span id="btBalance">0</span></p>
-<p>Win Rate: <span id="btWinRate">0%</span></p>
-<p>P/L: $<span id="btPL">0</span></p>
+  <canvas id="equityChart"></canvas>
 
-<hr>
+  <h3>Stats</h3>
 
-<h2>🤖 Trade Suggestions</h2>
+  <p>Total Trades: <span id="statTrades"></span></p>
+  <p>Win Rate: <span id="statWinRate"></span></p>
+  <p>Total P/L: $<span id="statPL"></span></p>
+  <p>Profit Factor: <span id="statPF"></span></p>
 
-<button onclick="generateSignals()">Scan Market</button>
+  <h3>Score</h3>
+  <h1 id="tradingScore">--</h1>
 
-<div id="signals"></div>
+  <h3>Drawdown</h3>
+  <p id="drawdownStatus"></p>
 
-<hr>
+</div>
 
-<h2>🧠 Strategy Builder</h2>
+<!-- ================= SCRIPTS ================= -->
+<script src="app.js"></script>
 
-<label>Min Price Change %</label>
-<input id="minChange" type="number" placeholder="0.5">
+<script>
+function showTab(tab) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.style.display = "none";
+  });
 
-<label>Min Score to Buy</label>
-<input id="minScore" type="number" placeholder="75">
+  document.getElementById(tab).style.display = "block";
+}
 
-<label>Max Risk %</label>
-<input id="maxRisk" type="number" placeholder="1">
-
-<button onclick="saveStrategy()">Save Strategy</button>
-
-<p id="strategyActive">No strategy saved</p>
-
-<hr>
-
-<h2>📊 Multi-Strategy Comparison</h2>
-
-<button onclick="runStrategyComparison()">Run Comparison</button>
-
-<div id="strategyResults"></div>
-
-<hr>
-
-<h2>🧠 Strategy Optimizer</h2>
-
-<button onclick="runOptimizer()">Optimize Strategy</button>
-
-<div id="optimizerResults"></div>
-
-
-
-
-
-  
-  <script src="app.js"></script>
-<script type="text/javascript"
-src="https://s3.tradingview.com/tv.js">
+window.onload = () => {
+  showTab("market");
+};
 </script>
 
-<script type="text/javascript">
-new TradingView.widget({
-  "width": "100%",
-  "height": 500,
-  "symbol": "NASDAQ:AAPL",
-  "interval": "5",
-  "timezone": "America/New_York",
-  "theme": "dark",
-  "style": "1",
-  "locale": "en",
-  "toolbar_bg": "#0f172a",
-  "enable_publishing": false,
-  "hide_top_toolbar": false,
-  "save_image": false,
-  "container_id": "tradingview_chart"
-});
-</script>
 </body>
 </html>
