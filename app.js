@@ -2,6 +2,9 @@ const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
 
 
 let symbols = ["AAPL", "TSLA", "MSFT"];
+let balance = 10000;
+
+let positions = [];
 
 // ADD STOCK
 function addSymbol() {
@@ -97,6 +100,78 @@ async function getPrice() {
     priceElement.innerText = "Error loading stock";
   }
 }
+async function buyStock() {
+
+  const symbol = document
+    .getElementById("tradeSymbol")
+    .value
+    .trim()
+    .toUpperCase();
+
+  const shares = parseInt(
+    document.getElementById("tradeShares").value
+  );
+
+  if (!symbol || !shares) return;
+
+  const data = await getStock(symbol);
+
+  const price = data.c;
+
+  const totalCost = price * shares;
+
+  if (totalCost > balance) {
+    alert("Not enough balance");
+    return;
+  }
+
+  balance -= totalCost;
+
+  positions.push({
+    symbol,
+    shares,
+    entry: price
+  });
+
+  updateBalance();
+  renderPositions();
+}
+async function renderPositions() {
+
+  const table = document.getElementById("positions");
+
+  table.innerHTML = "";
+
+  for (let pos of positions) {
+
+    const data = await getStock(pos.symbol);
+
+    const current = data.c;
+
+    const profit =
+      (current - pos.entry) * pos.shares;
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${pos.symbol}</td>
+      <td>${pos.shares}</td>
+      <td>$${pos.entry.toFixed(2)}</td>
+      <td>$${current.toFixed(2)}</td>
+      <td>$${profit.toFixed(2)}</td>
+    `;
+
+    table.appendChild(row);
+  }
+}
+function updateBalance() {
+  document.getElementById("balance")
+    .innerText = balance.toFixed(2);
+}
+setInterval(() => {
+  renderWatchlist();
+  renderPositions();
+}, 10000);
 
 // INIT (IMPORTANT)
 window.onload = function () {
