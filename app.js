@@ -1,4 +1,4 @@
-const API_KEY = "YOUR_API_KEY";
+const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
 
 async function getPrice() {
   const symbol = document.getElementById("symbol").value;
