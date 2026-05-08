@@ -12,6 +12,8 @@ let marketHistory = [];
 let replayIndex = 0;
 let isReplaying = false;
 let isRecording = false;
+let backtestBalance = 10000;
+let backtestTrades = [];
 
 // ADD STOCK
 function addSymbol() {
@@ -722,6 +724,174 @@ function resetReplay() {
 
   document.getElementById("replayStatus").innerText =
     "🔄 Reset complete";
+}
+async function runBacktest() {
+
+  if (marketHistory.length === 0) {
+    alert("No market data recorded");
+    return;
+  }
+
+  document.getElementById("backtestStatus").innerText =
+    "🧪 Running backtest...";
+
+  backtestBalance = 10000;
+  backtestTrades = [];
+
+  let openPosition = null;
+
+  for (let i = 0; i < marketHistory.length; i++) {
+
+    const snapshot = marketHistory[i];
+
+    for (let stock of snapshot) {
+
+      const symbol = stock.symbol;
+      const price = stock.price;
+
+      // ======================
+      // ENTRY RULE (BUY)
+      // ======================
+      const stopLoss = price * 0.98;     // 2% stop
+      const takeProfit = price * 1.03;   // 3% target
+
+      const strategy = checkStrategy(
+        symbol,
+        price,
+        stopLoss,
+        10
+      );
+
+      if (!openPosition && strategy.allowed) {
+
+        openPosition = {
+          symbol,
+          entry: price,
+          shares: 10,
+          stopLoss,
+          takeProfit
+        };
+      }
+
+      // ======================
+      // EXIT RULES
+      // ======================
+      if (openPosition && openPosition.symbol === symbol) {
+
+        // STOP LOSS
+        if (price <= openPosition.stopLoss) {
+
+          const pl =
+            (price - openPosition.entry) *
+            openPosition.shares;
+
+          backtestBalance += price * openPosition.shares;
+
+          backtestTrades.push(pl);
+
+          openPosition = null;
+        }
+
+        // TAKE PROFIT
+        else if (price >= openPosition.takeProfit) {
+
+          const pl =
+            (price - openPosition.entry) *
+            openPosition.shares;
+
+          backtestBalance += price * openPosition.shares;
+
+          backtestTrades.push(pl);
+
+          openPosition = null;
+        }
+      }
+    }
+  }
+
+  // FINAL RESULTS
+  const wins = backtestTrades.filter(t => t > 0).length;
+  const total = backtestTrades.length;
+
+  const winRate = total ? (wins / total) * 100 : 0;
+
+  const totalPL = backtestTrades.reduce((a, b) => a + b, 0);
+
+  document.getElementById("btTrades").innerText = total;
+  document.getElementById("btBalance").innerText = backtestBalance.toFixed(2);
+  document.getElementById("btWinRate").innerText = winRate.toFixed(1) + "%";
+  document.getElementById("btPL").innerText = totalPL.toFixed(2);
+
+  document.getElementById("backtestStatus").innerText =
+    "✅ Backtest complete";
+}
+async function evaluateSymbol(symbol) {
+
+  const data = await getStock(symbol);
+  const price = data.c;
+
+  // fake volatility proxy (simple approach)
+  const change = Math.abs(data.d || 0);
+  const changePercent = Math.abs(data.dp || 0);
+
+  let score = 50;
+
+  // 🟢 momentum condition
+  if (changePercent > 1) score += 20;
+
+  // 🟡 mild movement
+  if (changePercent > 0.5) score += 10;
+
+  // 🔴 low movement (no opportunity)
+  if (changePercent < 0.2) score -= 20;
+
+  // 🧠 risk filter
+  if (price < 5) score -= 15; // avoid penny stocks
+
+  if (score > 100) score = 100;
+  if (score < 0) score = 0;
+
+  let signal = "WAIT";
+
+  if (score >= 75) signal = "🟢 BUY SETUP";
+  else if (score >= 50) signal = "🟡 WATCH";
+  else signal = "🔴 AVOID";
+
+  return {
+    symbol,
+    price,
+    score,
+    signal
+  };
+}
+async function generateSignals() {
+
+  const container = document.getElementById("signals");
+  container.innerHTML = "Scanning...";
+
+  const results = [];
+
+  for (let symbol of symbols) {
+    const result = await evaluateSymbol(symbol);
+    results.push(result);
+  }
+
+  container.innerHTML = "";
+
+  results.forEach(r => {
+
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+      <h3>${r.symbol}</h3>
+      <p>Price: $${r.price}</p>
+      <p>Score: ${r.score}</p>
+      <p>${r.signal}</p>
+      <hr>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
 setInterval(async () => {
