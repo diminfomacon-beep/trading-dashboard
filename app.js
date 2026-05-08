@@ -3,7 +3,7 @@ const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
 
 let symbols = ["AAPL", "TSLA", "MSFT"];
 let balance = 10000;
-
+let journal = [];
 let positions = [];
 
 // ADD STOCK
@@ -195,10 +195,7 @@ function updateBalance() {
   document.getElementById("balance")
     .innerText = balance.toFixed(2);
 }
-setInterval(() => {
-  renderWatchlist();
-  renderPositions();
-}, 10000);
+
 function calculateRisk() {
 
   const entry = parseFloat(
@@ -241,27 +238,68 @@ async function checkStopLosses() {
     const data = await getStock(pos.symbol);
     const price = data.c;
 
-    // STOP LOSS TRIGGER
     if (price <= pos.stopLoss) {
 
-      const loss = (price - pos.entry) * pos.shares;
+      const profit = (price - pos.entry) * pos.shares;
 
       balance += price * pos.shares;
 
-      alert(
-        `${pos.symbol} STOP LOSS HIT\nLoss: $${loss.toFixed(2)}`
-      );
+      // 🧠 ADD TO JOURNAL
+      journal.push({
+        symbol: pos.symbol,
+        entry: pos.entry,
+        exit: price,
+        shares: pos.shares,
+        pl: profit,
+        result: profit >= 0 ? "LOSS (STOP HIT)" : "LOSS"
+      });
 
       positions.splice(i, 1);
+
+      alert(`${pos.symbol} STOP LOSS HIT`);
     }
   }
 
   updateBalance();
   renderPositions();
+  renderJournal();
+}
+
+function renderJournal() {
+
+  const table = document.getElementById("journal");
+  table.innerHTML = "";
+
+  journal.forEach(trade => {
+
+    const row = document.createElement("tr");
+
+    const resultColor =
+      trade.pl >= 0 ? "green" : "red";
+
+    row.innerHTML = `
+      <td>${trade.symbol}</td>
+      <td>$${trade.entry.toFixed(2)}</td>
+      <td>$${trade.exit.toFixed(2)}</td>
+      <td>${trade.shares}</td>
+      <td style="color:${resultColor}">
+        $${trade.pl.toFixed(2)}
+      </td>
+      <td>${trade.result}</td>
+    `;
+
+    table.appendChild(row);
+  });
 }
 setInterval(() => {
   checkStopLosses();
+  renderPositions();
+  renderJournal();
 }, 5000);
+setInterval(() => {
+  renderWatchlist();
+  renderPositions();
+}, 10000);
 
 // INIT (IMPORTANT)
 window.onload = function () {
