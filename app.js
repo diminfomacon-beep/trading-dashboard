@@ -50,7 +50,20 @@ const portfolioConfig = {
   maxSinglePositionPercent: 20 // max % in one stock
 };
 
+function showTab(tab) {
 
+  const sections = document.querySelectorAll(".tab");
+
+  sections.forEach(s => {
+    s.style.display = "none";
+  });
+
+  document.getElementById(tab).style.display = "block";
+}
+
+window.onload = () => {
+  showTab("market");
+};
 // ADD STOCK
 function addSymbol() {
   const input = document.getElementById("symbolInput");
