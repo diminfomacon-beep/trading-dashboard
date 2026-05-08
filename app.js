@@ -170,7 +170,8 @@ async function buyStock() {
     symbol,
     shares,
     entry: price,
-    stopLoss: stopLoss
+    stopLoss: stopLoss,
+    takeProfit: parseFloat(document.getElementById("tradeTakeProfit").value)
   });
 
   updateBalance();
@@ -490,6 +491,43 @@ function checkStrategy(symbol, price, stopLoss, shares) {
     reason: "Valid setup"
   };
 }
+async function checkTakeProfits() {
+
+  for (let i = positions.length - 1; i >= 0; i--) {
+
+    const pos = positions[i];
+    const data = await getStock(pos.symbol);
+    const price = data.c;
+
+    if (!pos.takeProfit) continue;
+
+    // TAKE PROFIT TRIGGER
+    if (price >= pos.takeProfit) {
+
+      const profit = (price - pos.entry) * pos.shares;
+
+      balance += price * pos.shares;
+
+      journal.push({
+        symbol: pos.symbol,
+        entry: pos.entry,
+        exit: price,
+        shares: pos.shares,
+        pl: profit,
+        result: "WIN (TAKE PROFIT)"
+      });
+
+      positions.splice(i, 1);
+
+      alert(`${pos.symbol} TAKE PROFIT HIT 🎯`);
+    }
+  }
+
+  updateBalance();
+  renderPositions();
+  renderJournal();
+}
+
 
 
 setInterval(async () => {
@@ -501,6 +539,7 @@ setInterval(async () => {
   await checkStopLosses();
 
   // UI UPDATES (run once)
+  checkTakeProfits();
   renderPositions();
   renderJournal();
   analyzeMistakes();
