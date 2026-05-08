@@ -35,60 +35,29 @@ header{
     font-weight:bold;
 }
 
-body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      margin: 0;
-      padding-bottom: 50px;
-    }
+.tabs{
+    display:flex;
+    background:#1e293b;
+}
 
-    .tabs {
-      display: flex;
-      flex-wrap: wrap; /* Allows buttons to wrap on small screens */
-      gap: 10px;
-      padding: 15px;
-      background: #111827;
-      position: sticky;
-      top: 0;
-      z-index: 9999; /* Higher z-index to stay on top */
-      border-bottom: 2px solid #1e293b;
-      pointer-events: auto; /* Force clicks to work */
-    }
+.tabs button{
+    flex:1;
+    padding:15px;
+    border:none;
+    background:#1e293b;
+    color:white;
+    cursor:pointer;
+}
 
-    .tabs button {
-      background: #1f2937;
-      color: white;
-      border: 1px solid #334155;
-      padding: 10px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+.tabs button:hover{
+    background:#334155;
+}
 
-    .tabs button:hover {
-      background: #374151;
-      border-color: #60a5fa;
-    }
+.tab{
+    display:none;
+    padding:20px;
+}
 
-    .tab {
-      display: none; /* Hidden by default */
-      padding: 20px;
-      position: relative; /* Ensure it stays in the document flow */
-      z-index: 1;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    td, th {
-      border: 1px solid #334155;
-      padding: 12px;
-      text-align: left;
-    }
 .card{
     background:#1e293b;
     padding:20px;
@@ -254,10 +223,16 @@ table{
 <body>
 
 <header>📈 AlphaSync</header>
-<button onclick="login()">
-    🔐 Login with Google
-</button>
+<div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid #334155;">
+    <button onclick="login()">🔐 Login with Google</button>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="color: #94a3b8; font-size: 0.9em;">Active Trader:</span>
+        <strong id="user-display-name" style="color: #60a5fa;">Guest User</strong>
+        <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
+    </div>
+</div>
 
+<div class="tabs">
 <div class="mobile-nav">
 
     <button onclick="showTab('dashboard')">📊</button>
@@ -413,65 +388,55 @@ table{
 
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyDWY98CaQD6pdt_KQHRnHHSzhjItFNutBk",
+        authDomain: "trading-app-847e3.firebaseapp.com",
+        projectId: "trading-app-847e3",
+        storageBucket: "trading-app-847e3.firebasestorage.app",
+        messagingSenderId: "369458346233",
+        appId: "1:369458346233:web:1cf817dcb8005d013e0a28",
+        measurementId: "G-WRNH098G04"
+    };
 
-      import {
-          getAuth,
-          GoogleAuthProvider,
-          signInWithPopup,
-          onAuthStateChanged
-      } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-      import {
-          getFirestore,
-          doc,
-          setDoc,
-          getDoc
-      } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    // Make tools available globally
+    window.auth = auth;
+    window.db = db;
+    window.provider = provider;
 
-      const firebaseConfig = {
+    // --- THE LOGGED IN LOGIC ---
+    onAuthStateChanged(auth, (user) => {
+        const nameEl = document.getElementById("user-display-name");
+        if (user) {
+            // Update the Top Bar with real info
+            if (nameEl) {
+                nameEl.innerText = `${user.displayName || user.email}`;
+            }
+            // Trigger the data load from your other script
+            if (window.loadUserData) {
+                window.loadUserData(user.uid);
+            }
+        } else {
+            if (nameEl) nameEl.innerText = "Guest User";
+        }
+    });
 
-          apiKey: "AIzaSyDWY98CaQD6pdt_KQHRnHHSzhjItFNutBk",
-
-          authDomain: "trading-app-847e3.firebaseapp.com",
-
-          projectId: "trading-app-847e3",
-
-          storageBucket: "trading-app-847e3.firebasestorage.app",
-
-          messagingSenderId: "369458346233",
-
-          appId: "1:369458346233:web:1cf817dcb8005d013e0a28",
-
-          measurementId: "G-WRNH098G04"
-      };
-
-      const app = initializeApp(firebaseConfig);
-
-      const auth = getAuth(app);
-
-      const db = getFirestore(app);
-
-      const provider = new GoogleAuthProvider();
-
-      window.auth = auth;
-      window.db = db;
-      window.provider = provider;
-
-      window.signInWithPopup = signInWithPopup;
-      window.onAuthStateChanged = onAuthStateChanged;
-
-      window.doc = doc;
-      window.setDoc = setDoc;
-      window.getDoc = getDoc;
-
-      console.log("🔥 Firebase Ready");
-
-window.login = login;
-window.loadUserData = loadUserData;
-window.saveUserData = saveUserData;
-
+    // Re-bind the login function so the button works
+    window.login = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (err) {
+            console.error("Login error:", err);
+        }
+    };
 </script>
 
 <script>
@@ -485,6 +450,10 @@ let portfolio = [];
 let alerts = [];
 let hasInitializedChart = false;
 let selectedStock = "";
+let currentUser = {
+    name: "Trader One",
+    email: "trader1@example.com"
+};
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -762,25 +731,21 @@ async function login(){
         console.error("Login error:", err);
     }
 }
-async function loadUserData(uid){
+async function loadUserData(uid) {
+    // Check if db is ready (bridging the module gap)
+    if (!window.db) return;
 
-    const ref = doc(db, "users", uid);
-
+    const ref = doc(window.db, "users", uid);
     const snap = await getDoc(ref);
 
-    if(snap.exists()){
-
+    if (snap.exists()) {
         const data = snap.data();
-
         portfolio = data.portfolio || [];
-
         watchlist = data.watchlist || [];
     }
 
     renderPortfolio();
-
     renderWatchlist();
-
     masterUpdate();
 }
 async function saveUserData(){
