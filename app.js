@@ -8,6 +8,10 @@ let positions = [];
 let equityHistory = [];
 let peakBalance = 10000;
 let tradingLocked = false;
+let marketHistory = [];
+let replayIndex = 0;
+let isReplaying = false;
+let isRecording = false;
 
 // ADD STOCK
 function addSymbol() {
@@ -635,7 +639,90 @@ function updateDrawdownProtection() {
       "🟢 Trading Active";
   }
 }
+async function recordMarket() {
 
+  if (!isRecording) return;
+
+  const snapshot = [];
+
+  for (let symbol of symbols) {
+    const data = await getStock(symbol);
+
+    snapshot.push({
+      symbol,
+      price: data.c,
+      time: Date.now()
+    });
+  }
+
+  marketHistory.push(snapshot);
+}
+function startRecording() {
+  marketHistory = [];
+  isRecording = true;
+  replayIndex = 0;
+
+  document.getElementById("replayStatus").innerText =
+    "📡 Recording market data...";
+}
+function startReplay() {
+
+  if (marketHistory.length === 0) {
+    alert("No data recorded yet");
+    return;
+  }
+
+  isRecording = false;
+  isReplaying = true;
+  replayIndex = 0;
+
+  document.getElementById("replayStatus").innerText =
+    "🔁 Replaying market...";
+}
+function runReplayStep() {
+
+  if (!isReplaying) return;
+
+  if (replayIndex >= marketHistory.length) {
+    isReplaying = false;
+
+    document.getElementById("replayStatus").innerText =
+      "✅ Replay finished";
+
+    return;
+  }
+
+  const snapshot = marketHistory[replayIndex];
+
+  // Update watchlist with historical prices
+  const table = document.getElementById("watchlist");
+  table.innerHTML = "";
+
+  snapshot.forEach(stock => {
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${stock.symbol}</td>
+      <td>$${stock.price}</td>
+      <td>REPLAY</td>
+      <td>--</td>
+    `;
+
+    table.appendChild(row);
+  });
+
+  replayIndex++;
+}
+function resetReplay() {
+  marketHistory = [];
+  replayIndex = 0;
+  isReplaying = false;
+  isRecording = false;
+
+  document.getElementById("replayStatus").innerText =
+    "🔄 Reset complete";
+}
 
 setInterval(async () => {
 
@@ -654,6 +741,12 @@ setInterval(async () => {
   updateStats();
   calculateTradingScore();
   updateDrawdownProtection(); 
+
+ // REPLAY SYSTEM
+
+  recordMarket();
+
+  runReplayStep();
 
 }, 5000);
 
