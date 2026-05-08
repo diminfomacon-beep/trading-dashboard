@@ -44,6 +44,36 @@
 <div class="tradingview-widget-container">
   <div id="tradingview_chart"></div>
 </div>
+<hr>
+
+<h1>💰 Paper Trading</h1>
+
+<div id="paperTrading">
+
+  <h2>Balance: $<span id="balance">10000</span></h2>
+
+  <input id="tradeSymbol" placeholder="Symbol (AAPL)">
+  <input id="tradeShares" type="number" placeholder="Shares">
+
+  <button onclick="buyStock()">Buy</button>
+
+</div>
+
+<h2>📦 Open Positions</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Shares</th>
+      <th>Entry</th>
+      <th>Current</th>
+      <th>P/L</th>
+    </tr>
+  </thead>
+
+  <tbody id="positions"></tbody>
+</table>
 
   <script src="app.js"></script>
 <script type="text/javascript"
