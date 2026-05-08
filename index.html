@@ -3,6 +3,7 @@
 <head>
   <title>Trading Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -112,7 +113,11 @@
 <div id="insights">
   <p>Analyzing your trades...</p>
 </div>
+<hr>
 
+<h2>📊 Equity Curve</h2>
+
+<canvas id="equityChart" width="400" height="200"></canvas>
   <script src="app.js"></script>
 <script type="text/javascript"
 src="https://s3.tradingview.com/tv.js">
