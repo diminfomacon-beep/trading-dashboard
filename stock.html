@@ -6,7 +6,7 @@
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="manifest" href="manifest.json">
 
 <meta name="theme-color" content="#0f172a">
@@ -20,202 +20,198 @@
 
 <style>
 
-body{
-    margin:0;
-    font-family:Arial;
-    background:#0f172a;
-    color:white;
+<style>
+/* --- BASE RESET & MOBILE FIXES --- */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    overflow-x: hidden; /* Prevents horizontal wiggle */
+    touch-action: pan-y; /* Prevents accidental double-tap zoom */
 }
 
-header{
-    padding:20px;
-    background:#111827;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
+header {
+    padding: 20px;
+    background: #111827;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
 }
 
-.tabs{
-    display:flex;
-    background:#1e293b;
+/* --- TABS & NAVIGATION --- */
+.tabs {
+    display: flex;
+    background: #1e293b;
 }
 
-.tabs button{
-    flex:1;
-    padding:15px;
-    border:none;
-    background:#1e293b;
-    color:white;
-    cursor:pointer;
+.tabs button {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background: #1e293b;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
 }
 
-.tabs button:hover{
-    background:#334155;
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background: #111827;
+    border-top: 1px solid #334155;
+    z-index: 9999;
+    padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone notch */
 }
 
-.tab{
-    display:none;
-    padding:20px;
+.mobile-nav button {
+    flex: 1;
+    padding: 15px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: white;
+    touch-action: manipulation;
 }
 
-.card{
-    background:#1e293b;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
+.tab {
+    display: none;
+    padding: 15px;
+    padding-bottom: 100px; /* Space for bottom nav */
 }
 
-input{
-    padding:10px;
-    margin:5px;
-    border:none;
-    border-radius:6px;
-    background:#334155;
-    color:white;
+/* --- CARDS & INPUTS --- */
+.card {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box; /* Crucial for mobile sizing */
 }
 
-button{
-    padding:10px 14px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    background:#2563eb;
-    color:white;
+input {
+    padding: 12px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 6px;
+    background: #334155;
+    color: white;
+    font-size: 16px; /* MAGIC NUMBER: Prevents iOS auto-zoom */
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.green{color:#10b981;}
-.red{color:#ef4444;}
-
-.suggestion{
-    padding:6px 12px;
-    border-radius:999px;
-    font-weight:bold;
-    display:inline-block;
+button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    touch-action: manipulation;
 }
 
-.buy{background:#064e3b;color:#10b981;}
-.sell{background:#450a0a;color:#ef4444;}
-.hold{background:#78350f;color:#f59e0b;}
-
-table{
-    width:100%;
-    border-collapse:collapse;
+/* --- TABLES & STOCK LISTS --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto; /* Allow horizontal swipe for data */
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
 }
 
-td,th{
-    border:1px solid #334155;
-    padding:10px;
+td, th {
+    border: 1px solid #334155;
+    padding: 10px;
+    font-size: 14px;
 }
 
-.stock-card{
-    background:#1e293b;
-    padding:15px;
-    border-radius:12px;
-    margin-bottom:15px;
+.stock-card {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.stock-card.active{
-    border:2px solid #3b82f6;
-    background:#111827;
-    transform: scale(1.02);
-    transition:0.2s;
-}
-#glossary p{
-    padding:6px 0;
-    border-bottom:1px solid #334155;
-}
-.mobile-nav{
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    display:flex;
-    background:#111827;
-    border-top:1px solid #334155;
-    z-index:9999;
+.stock-card.active {
+    border: 2px solid #3b82f6;
+    background: #111827;
+    /* Removed 'transform: scale' to prevent zoom/jitter */
+    transition: 0.2s;
 }
 
-.mobile-nav button{
-    flex:1;
-    padding:15px;
-    font-size:20px;
-    background:none;
-    border:none;
-    color:white;
-}
-.tab{
-    display:none;
-    padding:15px;
-    padding-bottom:80px; /* space for bottom nav */
-}
-.card{
-    background:#1e293b;
-    padding:15px;
-    border-radius:12px;
-    margin-bottom:15px;
-    width:100%;
-    box-sizing:border-box;
-}
-table{
-    width:100%;
-    border-collapse:collapse;
-    display:block;
-    overflow-x:auto;
-    white-space:nowrap;
-}
-#portfolioCards{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-.stock-card{
-    background:#1e293b;
-    padding:12px;
-    border-radius:12px;
-    margin-bottom:10px;
-    width:100%;
-}
-#chartModal{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.9);
-    z-index:99999;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+/* --- UTILITIES --- */
+.green { color: #10b981; }
+.red { color: #ef4444; }
+
+.suggestion {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: bold;
+    display: inline-block;
 }
 
-#chartModalContent{
-    width:95%;
-    height:90%;
-    background:#0f172a;
-    border-radius:12px;
-    padding:10px;
-    position:relative;
-    display:flex;
-    flex-direction:column;
+.buy { background: #064e3b; color: #10b981; }
+.sell { background: #450a0a; color: #ef4444; }
+.hold { background: #78350f; color: #f59e0b; }
+
+#glossary p {
+    padding: 8px 0;
+    border-bottom: 1px solid #334155;
+    font-size: 14px;
 }
 
-#mainChartModal{
-    flex:1;
+/* --- MODAL --- */
+#chartModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#closeChartBtn{
-    position:absolute;
-    top:10px;
-    right:10px;
-    background:#ef4444;
-    border:none;
-    color:white;
-    font-size:18px;
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    cursor:pointer;
+#chartModalContent {
+    width: 100%;
+    height: 100%;
+    background: #0f172a;
+    padding: 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
+
+#mainChartModal {
+    flex: 1;
+}
+
+#closeChartBtn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #ef4444;
+    border: none;
+    color: white;
+    font-size: 18px;
+    width: 44px; /* Slightly larger for easier tapping */
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+}
+</style>
 
 </style>
 </head>
@@ -224,8 +220,7 @@ table{
 
 <header>📈 AlphaSync</header>
 <div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid #334155;">
-    <button onclick="login()">🔐 Login with Google</button>
-    <div style="display: flex; align-items: center; gap: 10px;">
+        <button id="authButton" onclick="login()" style="background:#4285F4;">🔐 Login with Google</button>    <div style="display: flex; align-items: center; gap: 10px;">
         <span style="color: #94a3b8; font-size: 0.9em;">Active Trader:</span>
         <strong id="user-display-name" style="color: #60a5fa;">Guest User</strong>
         <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
@@ -413,21 +408,39 @@ table{
     window.provider = provider;
 
     // --- THE LOGGED IN LOGIC ---
-    onAuthStateChanged(auth, (user) => {
-        const nameEl = document.getElementById("user-display-name");
-        if (user) {
-            // Update the Top Bar with real info
-            if (nameEl) {
-                nameEl.innerText = `${user.displayName || user.email}`;
-            }
-            // Trigger the data load from your other script
-            if (window.loadUserData) {
-                window.loadUserData(user.uid);
-            }
-        } else {
-            if (nameEl) nameEl.innerText = "Guest User";
+   // --- THE AUTH STATE LOGIC ---
+onAuthStateChanged(auth, (user) => {
+    const nameEl = document.getElementById("user-display-name");
+    const authBtn = document.getElementById("authButton");
+
+    if (user) {
+        // 1. Update Name
+        if (nameEl) nameEl.innerText = user.displayName || user.email;
+
+        // 2. Change Button to Logout
+        if (authBtn) {
+            authBtn.innerText = "🚪 Logout";
+            authBtn.style.background = "#334155"; // Darker color for logout
+            authBtn.onclick = () => {
+                auth.signOut().then(() => {
+                    location.reload(); // Refresh to clear data on logout
+                });
+            };
         }
-    });
+
+        // 3. Load Data
+        if (window.loadUserData) window.loadUserData(user.uid);
+
+    } else {
+        // User is logged out
+        if (nameEl) nameEl.innerText = "Guest User";
+        if (authBtn) {
+            authBtn.innerText = "🔐 Login with Google";
+            authBtn.style.background = "#4285F4";
+            authBtn.onclick = window.login; // Point back to the login function
+        }
+    }
+});
 
     // Re-bind the login function so the button works
     window.login = async () => {
