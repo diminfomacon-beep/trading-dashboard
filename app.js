@@ -40,7 +40,15 @@ let strategies = [
   }
 ];
 
-
+const optimizerGrid = {
+  minChange: [0.2, 0.5, 1],
+  minScore: [60, 70, 80],
+  maxRisk: [0.5, 1, 2]
+};
+const portfolioConfig = {
+  maxExposurePercent: 50,   // max % of balance in open trades
+  maxSinglePositionPercent: 20 // max % in one stock
+};
 
 
 // ADD STOCK
@@ -175,6 +183,14 @@ async function buyStock() {
     alert("TRADE BLOCKED: " + strategy.reason);
     return;
   }
+  
+  const exposure = price * shares;
+    const exposurePercent = (exposure / balance) * 100;
+    
+    if (exposurePercent > portfolioConfig.maxSinglePositionPercent) {
+      alert("Trade rejected: Position too large for portfolio risk rules.");
+      return;
+    }
 
   // 4. BALANCE CHECK
   const totalCost = price * shares;
@@ -1038,6 +1054,172 @@ async function runStrategyComparison() {
     container.appendChild(div);
   });
 }
+function generateCombinations() {
+
+  const combos = [];
+
+  for (let mc of optimizerGrid.minChange) {
+    for (let ms of optimizerGrid.minScore) {
+      for (let mr of optimizerGrid.maxRisk) {
+
+        combos.push({
+          name: `MC${mc}-MS${ms}-R${mr}`,
+          minChange: mc,
+          minScore: ms,
+          maxRisk: mr
+        });
+
+      }
+    }
+  }
+
+  return combos;
+}
+function simulateStrategy(strategy) {
+
+  let balance = 10000;
+  let trades = [];
+  let open = null;
+
+  for (let snapshot of marketHistory) {
+
+    for (let stock of snapshot) {
+
+      const price = stock.price;
+
+      const changePercent = Math.abs(stock.dp || 0);
+
+      let score = 50;
+
+      if (changePercent > strategy.minChange) score += 15;
+      if (changePercent < 0.2) score -= 20;
+
+      if (score >= strategy.minScore && !open) {
+
+        open = {
+          entry: price,
+          shares: 10,
+          stop: price * 0.98,
+          take: price * 1.03
+        };
+      }
+
+      if (open) {
+
+        if (price <= open.stop || price >= open.take) {
+
+          const pl = (price - open.entry) * open.shares;
+
+          balance += pl;
+
+          trades.push(pl);
+
+          open = null;
+        }
+      }
+    }
+  }
+
+  const wins = trades.filter(t => t > 0).length;
+  const winRate = trades.length ? wins / trades.length : 0;
+  const totalPL = trades.reduce((a, b) => a + b, 0);
+
+  return {
+    strategy,
+    balance,
+    winRate,
+    totalPL,
+    trades: trades.length
+  };
+}
+function runOptimizer() {
+
+  if (marketHistory.length === 0) {
+    alert("No data recorded. Run recording first.");
+    return;
+  }
+
+  const container = document.getElementById("optimizerResults");
+  container.innerHTML = "Optimizing...";
+
+  const combos = generateCombinations();
+
+  let results = [];
+
+  for (let strategy of combos) {
+
+    const result = simulateStrategy(strategy);
+
+    results.push(result);
+  }
+
+  // sort best by profit
+  results.sort((a, b) => b.totalPL - a.totalPL);
+
+  const best = results[0];
+
+  // apply best strategy globally
+  strategyConfig = best.strategy;
+
+  document.getElementById("optimizerResults").innerHTML = `
+    <h3>🏆 Best Strategy Found</h3>
+    <p>${best.strategy.name}</p>
+    <p>Profit: $${best.totalPL.toFixed(2)}</p>
+    <p>Win Rate: ${(best.winRate * 100).toFixed(1)}%</p>
+    <p>Trades: ${best.trades}</p>
+  `;
+}
+function updatePortfolioRisk() {
+
+  let totalExposure = 0;
+  let positionExposure = {};
+
+  // calculate exposure per stock + total
+  positions.forEach(pos => {
+
+    const exposure = pos.entry * pos.shares;
+
+    totalExposure += exposure;
+
+    if (!positionExposure[pos.symbol]) {
+      positionExposure[pos.symbol] = 0;
+    }
+
+    positionExposure[pos.symbol] += exposure;
+  });
+
+  const portfolioRiskPercent = (totalExposure / balance) * 100;
+
+  // UI updates
+  document.getElementById("totalExposure").innerText =
+    totalExposure.toFixed(2);
+
+  document.getElementById("portfolioRisk").innerText =
+    portfolioRiskPercent.toFixed(2) + "%";
+
+  // RULE 1: total exposure limit
+  if (portfolioRiskPercent > portfolioConfig.maxExposurePercent) {
+    document.getElementById("portfolioStatus").innerText =
+      "🚫 TOO MUCH RISK - REDUCE POSITIONS";
+
+    tradingLocked = true;
+  } else {
+    document.getElementById("portfolioStatus").innerText =
+      "🟢 Portfolio Healthy";
+
+    tradingLocked = false;
+  }
+
+  // RULE 2: single stock concentration risk
+  for (let symbol in positionExposure) {
+
+    const percent = (positionExposure[symbol] / balance) * 100;
+
+    if (percent > portfolioConfig.maxSinglePositionPercent) {
+      console.warn(`Overexposed in ${symbol}`);
+    }
+  }
+}
 
 
 
@@ -1058,6 +1240,7 @@ setInterval(async () => {
   updateStats();
   calculateTradingScore();
   updateDrawdownProtection(); 
+  updatePortfolioRisk();
 
  // REPLAY SYSTEM
 
