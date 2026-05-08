@@ -4,16 +4,21 @@
   <title>Trading Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <h1>My Trading App</h1>
+  <h1>📈 My Trading App</h1>
 
-  <input id="symbol" placeholder="Enter stock (AAPL)">
-  <button onclick="getPrice()">Get Price</button>
+  <!-- SINGLE STOCK VIEW -->
+  <div>
+    <input id="symbol" placeholder="Enter stock (AAPL)">
+    <button onclick="getPrice()">Get Price</button>
+    <h2 id="price">--</h2>
+  </div>
 
-  <h2 id="price">--</h2>
+  <hr>
 
-
+  <!-- WATCHLIST -->
   <h1>📊 Live Watchlist</h1>
 
   <div>
@@ -30,9 +35,11 @@
         <th>Action</th>
       </tr>
     </thead>
+
     <tbody id="watchlist"></tbody>
   </table>
 
   <script src="app.js"></script>
+
 </body>
 </html>
