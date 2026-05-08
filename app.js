@@ -14,6 +14,12 @@ let isReplaying = false;
 let isRecording = false;
 let backtestBalance = 10000;
 let backtestTrades = [];
+let strategyConfig = {
+  minChange: 0.5,
+  minScore: 75,
+  maxRisk: 1
+};
+
 
 // ADD STOCK
 function addSymbol() {
@@ -157,7 +163,7 @@ async function buyStock() {
   }
 
   // 5. RISK CALCULATION
-  const riskAmount = balance * 0.01;
+  const riskAmount = balance * (strategyConfig.maxRisk / 100);
 
   const riskPerShare = price - stopLoss;
 
@@ -830,32 +836,44 @@ async function evaluateSymbol(symbol) {
   const data = await getStock(symbol);
   const price = data.c;
 
-  // fake volatility proxy (simple approach)
-  const change = Math.abs(data.d || 0);
   const changePercent = Math.abs(data.dp || 0);
 
+  // ======================
+  // 1. BASE SCORE (market behavior only)
+  // ======================
   let score = 50;
 
-  // 🟢 momentum condition
   if (changePercent > 1) score += 20;
-
-  // 🟡 mild movement
   if (changePercent > 0.5) score += 10;
-
-  // 🔴 low movement (no opportunity)
   if (changePercent < 0.2) score -= 20;
 
-  // 🧠 risk filter
-  if (price < 5) score -= 15; // avoid penny stocks
+  if (price < 5) score -= 15;
 
+  // ======================
+  // 2. STRATEGY ADJUSTMENT
+  // ======================
+  if (changePercent > strategyConfig.minChange) {
+    score += 15;
+  } else {
+    score -= 10;
+  }
+
+  // ======================
+  // 3. FINAL CLAMP
+  // ======================
   if (score > 100) score = 100;
   if (score < 0) score = 0;
 
-  let signal = "WAIT";
+  // ======================
+  // 4. SIGNAL DECISION (ONLY ON FINAL SCORE)
+  // ======================
+  let signal = "🔴 AVOID";
 
-  if (score >= 75) signal = "🟢 BUY SETUP";
-  else if (score >= 50) signal = "🟡 WATCH";
-  else signal = "🔴 AVOID";
+  if (score >= strategyConfig.minScore) {
+    signal = "🟢 BUY SETUP";
+  } else if (score >= 50) {
+    signal = "🟡 WATCH";
+  }
 
   return {
     symbol,
@@ -892,6 +910,20 @@ async function generateSignals() {
 
     container.appendChild(div);
   });
+}
+function saveStrategy() {
+
+  strategyConfig.minChange =
+    parseFloat(document.getElementById("minChange").value) || 0.5;
+
+  strategyConfig.minScore =
+    parseFloat(document.getElementById("minScore").value) || 75;
+
+  strategyConfig.maxRisk =
+    parseFloat(document.getElementById("maxRisk").value) || 1;
+
+  document.getElementById("strategyActive").innerText =
+    `Active Strategy → Change %: ${strategyConfig.minChange}, Score: ${strategyConfig.minScore}, Risk: ${strategyConfig.maxRisk}%`;
 }
 
 setInterval(async () => {
