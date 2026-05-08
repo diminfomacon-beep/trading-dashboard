@@ -102,8 +102,9 @@ async function getPrice() {
   }
 }
 
-  async function buyStock() {
+async function buyStock() {
 
+  // 1. READ INPUTS FIRST
   const symbol = document
     .getElementById("tradeSymbol")
     .value
@@ -120,19 +121,31 @@ async function getPrice() {
 
   if (!symbol || !shares || !stopLoss) return;
 
+  // 2. GET MARKET PRICE
   const data = await getStock(symbol);
   const price = data.c;
 
+  // 3. RUN STRATEGY CHECK (NOW VARIABLES EXIST)
+  const strategy = checkStrategy(symbol, price, stopLoss, shares);
+
+  document.getElementById("strategyStatus").innerText =
+    strategy.reason;
+
+  if (!strategy.allowed) {
+    alert("TRADE BLOCKED: " + strategy.reason);
+    return;
+  }
+
+  // 4. BALANCE CHECK
   const totalCost = price * shares;
 
-  // 1. BALANCE CHECK
   if (totalCost > balance) {
     alert("Not enough balance");
     return;
   }
 
-  // 2. REAL RISK CALCULATION
-  const riskAmount = balance * 0.01; // 1% rule
+  // 5. RISK CALCULATION
+  const riskAmount = balance * 0.01;
 
   const riskPerShare = price - stopLoss;
 
@@ -143,7 +156,6 @@ async function getPrice() {
 
   const totalRisk = riskPerShare * shares;
 
-  // 3. RISK VALIDATION
   if (totalRisk > riskAmount) {
     alert(
       `Trade rejected.\nRisk: $${totalRisk.toFixed(2)} exceeds allowed $${riskAmount.toFixed(2)}`
@@ -151,7 +163,7 @@ async function getPrice() {
     return;
   }
 
-  // 4. EXECUTE TRADE
+  // 6. EXECUTE TRADE
   balance -= totalCost;
 
   positions.push({
@@ -398,6 +410,87 @@ function updateEquityCurve() {
 
   equityChart.update();
 }
+function updateStats() {
+
+  if (journal.length === 0) return;
+
+  let wins = 0;
+  let losses = 0;
+  let totalWin = 0;
+  let totalLoss = 0;
+
+  journal.forEach(t => {
+
+    if (t.pl >= 0) {
+      wins++;
+      totalWin += t.pl;
+    } else {
+      losses++;
+      totalLoss += t.pl;
+    }
+  });
+
+  const totalTrades = journal.length;
+
+  const winRate = (wins / totalTrades) * 100;
+
+  const avgWin = wins ? totalWin / wins : 0;
+  const avgLoss = losses ? totalLoss / losses : 0;
+
+  const profitFactor =
+    Math.abs(totalWin / (totalLoss || 1));
+
+  const totalPL = totalWin + totalLoss;
+
+  // Update UI
+  document.getElementById("statTrades").innerText = totalTrades;
+  document.getElementById("statWinRate").innerText = winRate.toFixed(1) + "%";
+  document.getElementById("statPL").innerText = totalPL.toFixed(2);
+  document.getElementById("statAvgWin").innerText = avgWin.toFixed(2);
+  document.getElementById("statAvgLoss").innerText = avgLoss.toFixed(2);
+  document.getElementById("statPF").innerText = profitFactor.toFixed(2);
+}
+function checkStrategy(symbol, price, stopLoss, shares) {
+
+  const messages = [];
+
+  // RULE 1: Stop loss must exist
+  if (!stopLoss) {
+    messages.push("Missing stop-loss");
+  }
+
+  // RULE 2: Risk must be valid
+  const riskPerShare = price - stopLoss;
+  if (riskPerShare <= 0) {
+    messages.push("Stop-loss must be below entry");
+  }
+
+  const riskAmount = balance * 0.01;
+  const totalRisk = riskPerShare * shares;
+
+  if (totalRisk > riskAmount) {
+    messages.push("Risk too high");
+  }
+
+  // RULE 3: Basic liquidity sanity check (simple proxy)
+  if (price <= 0) {
+    messages.push("Invalid price data");
+  }
+
+  // FINAL RESULT
+  if (messages.length > 0) {
+    return {
+      allowed: false,
+      reason: messages.join(" | ")
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: "Valid setup"
+  };
+}
+
 
 setInterval(async () => {
 
@@ -412,6 +505,7 @@ setInterval(async () => {
   renderJournal();
   analyzeMistakes();
   updateEquityCurve();
+  updateStats();
 
 }, 5000);
 
