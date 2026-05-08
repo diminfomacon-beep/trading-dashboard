@@ -527,7 +527,79 @@ async function checkTakeProfits() {
   renderPositions();
   renderJournal();
 }
+function calculateTradingScore() {
 
+  if (journal.length === 0) {
+    document.getElementById("tradingScore").innerText = "--";
+    document.getElementById("scoreMessage").innerText =
+      "No trades yet.";
+    return;
+  }
+
+  let score = 100;
+
+  let wins = 0;
+  let losses = 0;
+  let totalLoss = 0;
+  let totalWin = 0;
+
+  journal.forEach(t => {
+    if (t.pl >= 0) {
+      wins++;
+      totalWin += t.pl;
+    } else {
+      losses++;
+      totalLoss += t.pl;
+    }
+  });
+
+  const totalTrades = journal.length;
+
+  const winRate = wins / totalTrades;
+
+  // ⚠️ RULE 1: Low win rate penalty
+  if (winRate < 0.4) score -= 25;
+  else if (winRate < 0.5) score -= 10;
+
+  // ⚠️ RULE 2: Losses bigger than wins
+  if (Math.abs(totalLoss) > totalWin) {
+    score -= 20;
+  }
+
+  // ⚠️ RULE 3: Overtrading penalty
+  if (journal.length > 15) {
+    score -= 10;
+  }
+
+  // ⚠️ RULE 4: Consistency bonus/penalty
+  const last5 = journal.slice(-5);
+  const allLosses = last5.every(t => t.pl < 0);
+
+  if (allLosses) {
+    score -= 15;
+  }
+
+  // Clamp score
+  if (score < 0) score = 0;
+  if (score > 100) score = 100;
+
+  // DISPLAY
+  document.getElementById("tradingScore").innerText = score;
+
+  let message = "";
+
+  if (score >= 80) {
+    message = "🟢 Excellent discipline. Keep following your system.";
+  } else if (score >= 60) {
+    message = "🟡 Decent, but inconsistent execution.";
+  } else if (score >= 40) {
+    message = "🟠 Poor discipline — focus on rules, not trades.";
+  } else {
+    message = "🔴 High risk behavior — stop overtrading and reset.";
+  }
+
+  document.getElementById("scoreMessage").innerText = message;
+}
 
 
 setInterval(async () => {
@@ -545,6 +617,7 @@ setInterval(async () => {
   analyzeMistakes();
   updateEquityCurve();
   updateStats();
+  calculateTradingScore();
 
 }, 5000);
 
