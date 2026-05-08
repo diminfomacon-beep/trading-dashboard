@@ -13,6 +13,26 @@
 
   <h2 id="price">--</h2>
 
+
+  <h1>📊 Live Watchlist</h1>
+
+  <div>
+    <input id="symbolInput" placeholder="Add stock (AAPL)">
+    <button onclick="addSymbol()">Add</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th>Price</th>
+        <th>Change</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="watchlist"></tbody>
+  </table>
+
   <script src="app.js"></script>
 </body>
 </html>
