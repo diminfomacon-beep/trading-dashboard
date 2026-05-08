@@ -6,6 +6,8 @@ let balance = 10000;
 let journal = [];
 let positions = [];
 let equityHistory = [];
+let peakBalance = 10000;
+let tradingLocked = false;
 
 // ADD STOCK
 function addSymbol() {
@@ -103,6 +105,10 @@ async function getPrice() {
 }
 
 async function buyStock() {
+  if (tradingLocked) {
+    alert("Trading is locked due to drawdown protection.");
+    return;
+  }
 
   // 1. READ INPUTS FIRST
   const symbol = document
@@ -600,6 +606,35 @@ function calculateTradingScore() {
 
   document.getElementById("scoreMessage").innerText = message;
 }
+function updateDrawdownProtection() {
+
+  // Update peak
+  if (balance > peakBalance) {
+    peakBalance = balance;
+  }
+
+  // Calculate drawdown
+  const drawdown = peakBalance - balance;
+  const drawdownPercent = (drawdown / peakBalance) * 100;
+
+  // Update UI
+  document.getElementById("peakBalance").innerText =
+    peakBalance.toFixed(2);
+
+  document.getElementById("drawdownPercent").innerText =
+    drawdownPercent.toFixed(2) + "%";
+
+  // RULE: lock trading if drawdown too high
+  if (drawdownPercent >= 10) {
+    tradingLocked = true;
+    document.getElementById("drawdownStatus").innerText =
+      "🚫 Trading Locked (Drawdown Limit Hit)";
+  } else {
+    tradingLocked = false;
+    document.getElementById("drawdownStatus").innerText =
+      "🟢 Trading Active";
+  }
+}
 
 
 setInterval(async () => {
@@ -618,6 +653,7 @@ setInterval(async () => {
   updateEquityCurve();
   updateStats();
   calculateTradingScore();
+  updateDrawdownProtection(); 
 
 }, 5000);
 
