@@ -57,15 +57,15 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
 <div id="dashboard" class="tab">
     <div class="card">
-        <h3>🚨 Alerts</h3>
+        <h4>🚨 Alerts</h4>
         <div id="alerts"></div>
     </div>
     <div class="card">
-        <h3>🏆 Top Opportunities</h3>
+        <h4>🏆 Top Opportunities</h4>
         <div id="topStocks"></div>
     </div>
     <div class="card">
-        <h3>👀 Watchlist</h3>
+        <h4>👀 Watchlist</h4>
         <div style="display:flex; gap:10px; margin-bottom: 10px;">
             <input id="watchInput" placeholder="AAPL">
             <button onclick="addToWatchlistFromInput()">Add</button>
@@ -96,20 +96,20 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
         <div id="portfolioInlineChart" style="height: 100%; width: 100%;"></div>
     </div>
 
-    <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 15px;">
-        <h4 style="margin: 0;">➕ Add:</h4>
-        <input id="pSymbol" placeholder="AAPL" style="flex:1;">
-        <input id="pShares" type="number" placeholder="Shares" style="flex:1;">
-        <input id="pPrice" type="number" placeholder="Price" style="flex:1;">
-        <button onclick="addPortfolioStock()">Add Position</button>
-    </div>
+    <div class="card" style="display: flex; align-items: center; gap: 8px; padding: 10px; margin-bottom: 15px;">
+    <h4 style="margin: 0; font-size: 14px;">➕ Add:</h4>
+    <input id="pSymbol" placeholder="Sym" style="flex: 1; font-size: 12px; padding: 10px 4px; min-width: 0;">
+    <input id="pShares" type="number" placeholder="Qty" style="flex: 1; font-size: 12px; padding: 10px 4px; min-width: 0;">
+    <input id="pPrice" type="number" placeholder="Price" style="flex: 1; font-size: 12px; padding: 10px 4px; min-width: 0;">
+    <button onclick="addPortfolioStock()" style="padding: 10px 8px; font-size: 12px; white-space: nowrap;">Add</button>
+</div>
 
     <div id="portfolioCards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
 </div>
 
 <div id="analyzer" class="tab">
     <div class="card">
-        <h3>Stock Analyzer</h3>
+        <h4>Stock Analyzer</h4>
         <input id="aSymbol" placeholder="TSLA">
         <button onclick="analyzeStock()">Analyze</button>
         <div id="analysis"></div>
