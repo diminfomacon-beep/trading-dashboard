@@ -498,38 +498,33 @@ async function loadUserData(uid) {
 async function saveUserData(){ const user = auth.currentUser;if(!user) return; await setDoc(doc(db, "users", user.uid), { portfolio, watchlist});}
 
 /* ---------------- PORTFOLIO ---------------- */
-async function addPortfolioStock(){
-
+async function addPortfolioStock() {
     const symbol = document.getElementById("pSymbol").value.toUpperCase();
     const shares = parseFloat(document.getElementById("pShares").value);
     const price = parseFloat(document.getElementById("pPrice").value);
 
+    if (!symbol || isNaN(shares)) return;
+
     const data = await getStock(symbol);
+    const existing = portfolio.find(p => p.symbol === symbol);
 
-    const existing = portfolio.find(p=>p.symbol===symbol);
-
-    if(existing){
-
+    if (existing) {
         const total = existing.shares + shares;
-
-        existing.buyPrice =
-        ((existing.shares*existing.buyPrice)+(shares*price))/total;
-
+        existing.buyPrice = ((existing.shares * existing.buyPrice) + (shares * price)) / total;
         existing.shares = total;
-
-    }else{
-
+    } else {
         portfolio.push({
             symbol,
             shares,
-            buyPrice:price,
-            current:data.c,
-            pl:0
+            buyPrice: price,
+            current: data.c,
+            pl: 0
         });
     }
 
     renderPortfolio();
-    saveUserData();
+    // CRITICAL: This sends the new list to Firebase
+    await saveUserData(); 
 }
 
 async function updatePortfolio(){
