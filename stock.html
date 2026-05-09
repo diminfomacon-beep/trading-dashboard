@@ -112,38 +112,32 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 </div>
 
 <div id="portfolio" class="tab">
-    <div class="card">
-        <h3>📊 Portfolio Summary</h3>
-        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <p>💰 Invested: $<span id="totalInvested">0</span></p>
-            <p>📊 Current Value: $<span id="totalValue">0</span></p>
-            <p class="green">📈 P/L: $<span id="totalPL">0</span></p>
-            <p class="green">📈 Return: <span id="totalReturn">0</span>%</p>
+    
+    <header style="margin-bottom: 20px;">
+        <h2 style="margin: 0;">💼 My Portfolio</h2>
+        <div class="card" style="display: flex; gap: 30px; margin-top: 15px; padding: 15px; flex-wrap: wrap;">
+            <span>💰 Invested: <strong>$<span id="totalInvested">0</span></strong></span>
+            <span>📊 Value: <strong>$<span id="totalValue">0</span></strong></span>
+            <span class="green">📈 P/L: <strong>$<span id="totalPL">0</span></strong></span>
+            <span class="green">📈 Return: <strong><span id="totalReturn">0</span>%</strong></span>
         </div>
+    </header>
+
+    <div class="card" style="height: 25vh; min-height: 200px; padding: 10px; margin-bottom: 20px;">
+        <div id="portfolioInlineChart" style="height: 100%; width: 100%;"></div>
     </div>
 
-    <div class="portfolio-layout" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: start;">
-        
-        <div class="left-col">
-            <div class="card">
-                <h3>💼 My Portfolio</h3>
-                <div id="portfolioCards"></div>
-            </div>
-
-            <div class="card">
-                <h3>➕ Add Position</h3>
-                <input id="pSymbol" placeholder="AAPL" style="width: 80px;">
-                <input id="pShares" type="number" placeholder="Shares" style="width: 80px;">
-                <input id="pPrice" type="number" placeholder="Price" style="width: 80px;">
-                <button style="border-radius: 5px; background-color: #3b82f6; color:#fff; margin-top: 10px;" onclick="addPortfolioStock()">Add / Merge</button>
-            </div>
-        </div>
-
-        <div class="right-col card" style="position: sticky; top: 80px; height: 500px; padding: 10px;">
-            <h3 style="margin-top: 0;">📈 ${symbol} History</h3>
-            <div id="portfolioInlineChart" style="height: 440px; border-radius: 8px; overflow: hidden;"></div>
-        </div>
+    <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+        <h4 style="margin: 0; white-space: nowrap;">➕ Add Position:</h4>
+        <input id="pSymbol" placeholder="Symbol" style="flex: 1; min-width: 80px;">
+        <input id="pShares" type="number" placeholder="Shares" style="flex: 1; min-width: 80px;">
+        <input id="pPrice" type="number" placeholder="Price" style="flex: 1; min-width: 80px;">
+        <button style="background: #2563eb; padding: 10px 20px;" onclick="addPortfolioStock()">Add Position</button>
     </div>
+
+    <div id="portfolioCards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        </div>
+
 </div>
 
 <!-- ANALYZER -->
@@ -557,35 +551,24 @@ async function updatePortfolio(){
 function selectStock(symbol) {
     selectedStock = symbol;
     
-    const chartLabel = document.getElementById("chartSymbol");
-    if (chartLabel) chartLabel.innerText = symbol;
-
     const chartContainer = document.getElementById("portfolioInlineChart");
     if (chartContainer) {
         chartContainer.innerHTML = "";
         
-        // This configuration creates a clean, minimal line chart
         new TradingView.widget({
             "container_id": "portfolioInlineChart",
             "symbol": `NASDAQ:${symbol}`,
             "interval": "D",
             "theme": "dark",
-            "style": "2", // <--- This sets it to 'Line' instead of 'Candles'
-            "locale": "en",
+            "style": "2", // Simple Line
             "autosize": true,
-            "hide_top_toolbar": true,    // Removes the search and timeframes
-            "hide_side_toolbar": true,   // Removes drawing tools
-            "allow_symbol_change": false,
+            "hide_top_toolbar": true,
+            "hide_legend": true, // Hiding legend makes the 25% height look cleaner
             "save_image": false,
-            "details": false,            // Removes the right-side data panel
-            "hotlist": false,
-            "calendar": false,
-            "show_popup_button": false,
-            "backgroundColor": "rgba(15, 23, 42, 1)", // Matches your background #0f172a
-            "gridColor": "rgba(255, 255, 255, 0.05)"  // Makes grid lines almost invisible
+            "backgroundColor": "#1e293b", // Matches card background
+            "gridColor": "rgba(255, 255, 255, 0.05)"
         });
     }
-
     renderPortfolio();
 }
 
