@@ -15,37 +15,175 @@
 
 <style>
 /* --- BASE RESET & MOBILE FIXES --- */
-body {margin: 0;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;background: #0f172a;color: white; overflow-x: hidden;touch-action: pan-y;}
-header {padding: 20px;background: #111827;text-align: center;font-size: 22px;font-weight: bold;}
+:root {
+    /* DARK MODE (Default) */
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-header: #111827;
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --input-bg: #334155;
+    --accent: #2563eb;
+    --nav-bg: #111827;
+}
 
-.mobile-nav {position: fixed;bottom: 0;left: 0;right: 0;display: flex;background: #111827;border-top: 1px solid #334155;z-index: 9999;padding-bottom: env(safe-area-inset-bottom);}
-.mobile-nav button {flex: 1;padding: 15px;font-size: 24px;background: none;border: none;color: white;touch-action: manipulation;}
-.tab {display: none;padding: 15px;padding-bottom: 100px;}
+[data-theme="light"] {
+    /* LIGHT MODE */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-header: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --input-bg: #f1f5f9;
+    --accent: #3b82f6;
+    --nav-bg: #ffffff;
+}
 
-.card {background: #1e293b;padding: 15px;border-radius: 12px;margin-bottom: 15px;width: 100%;box-sizing: border-box;}
-input {padding: 12px;margin: 5px 0;border: none;border-radius: 6px;background: #334155;color: white;font-size: 16px; width: 100%;box-sizing: border-box;}
-button {padding: 12px 16px;border: none;border-radius: 6px;cursor: pointer;background: #2563eb;color: white;font-weight: 600;touch-action: manipulation;}
+/* --- BASE STYLES --- */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    overflow-x: hidden;
+    touch-action: pan-y;
+    transition: background 0.3s, color 0.3s;
+}
 
-table {width: 100%;border-collapse: collapse;display: block;overflow-x: auto; white-space: nowrap;-webkit-overflow-scrolling: touch;}
-td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
+header {
+    padding: 20px;
+    background: var(--bg-header);
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border);
+}
+
+/* --- NAVIGATION --- */
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--border);
+    z-index: 9999;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    font-size: 20px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    transition: 0.2s;
+    touch-action: manipulation;
+}
+
+.tab-btn.active {
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
+/* --- CARDS & UI ELEMENTS --- */
+.tab { display: none; padding: 15px; padding-bottom: 100px; }
+
+.card {
+    background: var(--bg-card);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+}
+
+input {
+    padding: 12px;
+    margin: 5px 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    touch-action: manipulation;
+}
+
+/* --- TABLES --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+td, th {
+    border: 1px solid var(--border);
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* --- PORTFOLIO & WATCHLIST SPECIFICS --- */
+.stock-card {
+    background: var(--bg-card);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+}
+
+.stock-card.active {
+    border: 2px solid var(--accent);
+    background: var(--bg-header);
+}
 
 .green { color: #10b981; }
 .red { color: #ef4444; }
 
-.tab-btn{ flex:1; padding:15px; font-size:20px; background:none; border:none; color:#94a3b8; transition:0.2s; }
-.tab-btn.active{ background:#2563eb; color:white; font-weight:bold; box-shadow: 0 0 10px rgba(37,99,235,0.4); }
+/* --- GLOSSARY & LEARN TAB --- */
+.collapsible-content {
+    transition: max-height 0.3s ease-out;
+    overflow: hidden;
+}
 
-.stock-card {background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; width: 100%; box-sizing: border-box;}
-.stock-card.active {border: 2px solid #3b82f6; background: #111827;}
+.glossary-list {
+    font-size: 14px;
+    line-height: 1.8;
+    padding-left: 20px;
+    margin: 0;
+    color: var(--text-main);
+}
 
-#glossary p { padding: 8px 0; border-bottom: 1px solid #334155; font-size: 13px; }
-.green { color: #10b981; }
-.red { color: #ef4444; }
-.collapsible-content {    transition: max-height 0.3s ease-out;    overflow: hidden;}
-
-.glossary-list {    font-size: 14px;    line-height: 1.8;    padding-left: 20px;    margin: 0;}
-
-#learn p {    font-size: 14px;    padding: 8px 0;    border-bottom: 1px solid #334155;    margin: 0;}
+#learn p {
+    font-size: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    margin: 0;
+    color: var(--text-main);
+}
 
 #learn p:last-child { border-bottom: none; }
 </style>
@@ -55,12 +193,15 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
 <header>🔣SignalForge</header>
 
-<div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155;">
+<div id="user-status" ...>
     <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="color: #94a3b8; font-size: 0.9em;">Trader:</span>
-        <strong id="user-display-name" style="color: #60a5fa;">Guest User</strong>
+        <span style="color: var(--text-muted); font-size: 0.9em;">Trader:</span>
+        <strong id="user-display-name" style="color: var(--accent);">Guest User</strong>
     </div>
-    <button id="authButton" style="background:#4285F4; padding: 8px 12px; font-size: 13px;">🔐 Login</button>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button onclick="toggleTheme()" style="background:none; border:1px solid var(--border); padding: 5px 10px; font-size: 16px;">🌓</button>
+        <button id="authButton" ...>🔐 Login</button>
+    </div>
 </div>
 
 <div class="mobile-nav">
@@ -414,14 +555,33 @@ function removePortfolio(symbol) {
 
 function selectStock(symbol) {
     selectedStock = symbol;
+    const theme = document.documentElement.getAttribute("data-theme") || "dark";
+    
     document.getElementById("portfolioInlineChart").innerHTML = "";
     new TradingView.widget({
-        "container_id": "portfolioInlineChart", "symbol": `NASDAQ:${symbol}`,
-        "interval": "D", "theme": "dark", "style": "3", "autosize": true,
-        "hide_top_toolbar": true, "backgroundColor": "#1e293b"
+        "container_id": "portfolioInlineChart",
+        "symbol": `NASDAQ:${symbol}`,
+        "theme": theme, // This now uses 'dark' or 'light' dynamically
+        "style": "3",
+        "autosize": true,
+        "backgroundColor": theme === "dark" ? "#1e293b" : "#ffffff"
     });
-    renderPortfolio();
 }
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "light" ? "dark" : "light";
+    
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+    
+    // Optional: Refresh the TradingView chart if it's visible 
+    // to match the theme (TradingView charts don't auto-update colors)
+    if(selectedStock) selectStock(selectedStock);
+}
+
+// Check for saved theme on page load
+const savedTheme = localStorage.getItem("theme") || "dark";
+document.documentElement.setAttribute("data-theme", savedTheme);
 
 function renderPortfolio() {
     document.getElementById("portfolioCards").innerHTML = window.portfolio.map(p => `
