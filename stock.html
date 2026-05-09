@@ -66,7 +66,7 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
     </div>
     <div class="card">
         <h3>👀 Watchlist</h3>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; margin-bottom: 10px;">
             <input id="watchInput" placeholder="AAPL">
             <button onclick="addToWatchlistFromInput()">Add</button>
         </div>
@@ -150,7 +150,6 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
             authBtn.style.background = "#334155";
             authBtn.onclick = () => auth.signOut().then(() => location.reload());
             
-            // Fetch saved data
             const ref = doc(db, "users", user.uid);
             const snap = await getDoc(ref);
             if (snap.exists()) {
@@ -173,6 +172,7 @@ window.watchlist = [];
 window.portfolio = [];
 let selectedStock = "";
 
+/* --- UTILITIES --- */
 function showTab(tab){
     document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
     document.getElementById(tab).style.display="block";
@@ -196,68 +196,67 @@ async function saveUserData() {
     } catch (e) { console.error("Save error", e); }
 }
 
-async function addPortfolioStock() {
-    const symbol = document.getElementById("pSymbol").value.toUpperCase();
-    const shares = parseFloat(document.getElementById("pShares").value);
-    const price = parseFloat(document.getElementById("pPrice").value);
-    if (!symbol || isNaN(shares)) return;
+/* --- MATH HELPERS --- */
+function getTrendScore(dp){ let s = 50 + (dp * 5); return Math.min(100, Math.max(0, Math.round(s))); }
+function getVolatilityScore(dp){ return Math.min(100, Math.round(Math.abs(dp) * 10)); }
+function getStrengthScore(dp){ let s = getTrendScore(dp) - (getVolatilityScore(dp) * 0.2); return Math.min(100, Math.max(0, Math.round(s))); }
+function getSuggestion(dp){
+    if(dp >= 3) return "🟢 BUY";
+    if(dp <= -3) return "🔴 SELL";
+    return "⚪ HOLD";
+}
+function scoreColor(s){ return s >= 70 ? '#10b981' : s >= 40 ? '#f59e0b' : '#ef4444'; }
 
-    const data = await getStock(symbol);
-    const existing = window.portfolio.find(p => p.symbol === symbol);
-
-    if (existing) {
-        const total = existing.shares + shares;
-        existing.buyPrice = ((existing.shares * existing.buyPrice) + (shares * price)) / total;
-        existing.shares = total;
-    } else {
-        window.portfolio.push({ symbol, shares, buyPrice: price, current: data.c, pl: 0 });
+/* --- WATCHLIST & ANALYZER --- */
+async function addToWatchlistFromInput() {
+    const symbol = document.getElementById("watchInput").value.toUpperCase();
+    if (symbol) {
+        await addToWatchlist(symbol);
+        document.getElementById("watchInput").value = "";
     }
-    masterUpdate();
+}
+
+async function addToWatchlist(symbol) {
+    if (window.watchlist.find(s => s.symbol === symbol)) return;
+    const d = await getStock(symbol);
+    window.watchlist.push({
+        symbol, price: d.c, change: d.dp, 
+        trendScore: getTrendScore(d.dp),
+        volatilityScore: getVolatilityScore(d.dp),
+        strengthScore: getStrengthScore(d.dp),
+        suggestion: getSuggestion(d.dp)
+    });
+    renderWatchlist();
     saveUserData();
 }
 
+function removeWatch(index){
+    window.watchlist.splice(index, 1);
+    renderWatchlist();
+    saveUserData();
+}
 function removePortfolio(symbol){ 
     window.portfolio = window.portfolio.filter(p => p.symbol !== symbol);
     masterUpdate();
     saveUserData();
 }
 
-function selectStock(symbol) {
-    selectedStock = symbol;
-    const container = document.getElementById("portfolioInlineChart");
-    container.innerHTML = "";
-    new TradingView.widget({
-        "container_id": "portfolioInlineChart",
-        "symbol": `NASDAQ:${symbol}`,
-        "interval": "D",
-        "theme": "dark",
-        "style": "2",
-        "autosize": true,
-        "hide_top_toolbar": true,
-        "hide_legend": true,
-        "backgroundColor": "#1e293b"
-    });
-    renderPortfolio();
-}
-
-function renderPortfolio() {
-    const container = document.getElementById("portfolioCards");
-    if (window.portfolio.length === 0) {
-        container.innerHTML = "<p>No positions yet.</p>";
-        return;
-    }
-    container.innerHTML = window.portfolio.map(p => `
-        <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}" onclick="selectStock('${p.symbol}')">
-            <div style="display:flex; justify-content:space-between;">
-                <strong>${p.symbol}</strong>
-                <span class="${p.pl >= 0 ? 'green' : 'red'}">$${p.pl.toFixed(2)}</span>
-            </div>
-            <div style="font-size:12px; color:#94a3b8; margin:5px 0;">${p.shares} shares @ $${p.buyPrice.toFixed(2)}</div>
-            <button onclick="event.stopPropagation(); removePortfolio('${p.symbol}')" style="background:none; color:#ef4444; padding:0; font-size:11px;">Remove</button>
-        </div>
+function renderWatchlist(){
+    const el = document.getElementById("watchlist");
+    if(!el) return;
+    el.innerHTML = window.watchlist.map((s, i) => `
+        <tr>
+            <td>${s.symbol}</td>
+            <td>$${(s.price || 0).toFixed(2)}</td>
+            <td class="${s.change >= 0 ? 'green' : 'red'}">${(s.change || 0).toFixed(2)}%</td>
+            <td>${s.suggestion}</td>
+            <td><div style="width:50px; background:#334155; height:5px;"><div style="width:${s.trendScore}%; background:#3b82f6; height:100%;"></div></div></td>
+            <td><div style="width:50px; background:#334155; height:5px;"><div style="width:${s.volatilityScore}%; background:#f59e0b; height:100%;"></div></div></td>
+            <td style="color:${scoreColor(s.strengthScore)}">${s.strengthScore}%</td>
+            <td><button onclick="removeWatch(${i})" style="background:none; padding:0;">❌</button></td>
+        </tr>
     `).join("");
 }
-
 async function updatePortfolio(){
     for(let p of window.portfolio){
         const d = await getStock(p.symbol);
@@ -280,14 +279,89 @@ function updatePortfolioSummary(){
     document.getElementById("totalReturn").innerText = pct.toFixed(2);
 }
 
-async function masterUpdate(){
-    await updatePortfolio();
+
+async function analyzeStock() {
+    const symbol = document.getElementById("aSymbol").value.toUpperCase();
+    if (!symbol) return;
+    const d = await getStock(symbol);
+    const strength = getStrengthScore(d.dp);
+    document.getElementById("analysis").innerHTML = `
+        <div class="card" style="margin-top:15px;">
+            <h4>${symbol} Analysis</h4>
+            <h2 style="color:${scoreColor(strength)}">${getSuggestion(d.dp)}</h2>
+            <p>Strength: ${strength}% | Trend: ${getTrendScore(d.dp)}</p>
+            <button onclick="addToWatchlist('${symbol}')" style="width:100%; background:#10b981;">➕ Add to Watchlist</button>
+        </div>
+    `;
+}
+
+/* --- PORTFOLIO --- */
+async function addPortfolioStock() {
+    const symbol = document.getElementById("pSymbol").value.toUpperCase();
+    const shares = parseFloat(document.getElementById("pShares").value);
+    const price = parseFloat(document.getElementById("pPrice").value);
+    if (!symbol || isNaN(shares)) return;
+
+    const d = await getStock(symbol);
+    window.portfolio.push({ symbol, shares, buyPrice: price, current: d.c, pl: 0 });
+    masterUpdate();
+    saveUserData();
+}
+
+function selectStock(symbol) {
+    selectedStock = symbol;
+    document.getElementById("portfolioInlineChart").innerHTML = "";
+    new TradingView.widget({
+        "container_id": "portfolioInlineChart", "symbol": `NASDAQ:${symbol}`,
+        "interval": "D", "theme": "dark", "style": "2", "autosize": true,
+        "hide_top_toolbar": true, "hide_legend": true, "backgroundColor": "#1e293b"
+    });
     renderPortfolio();
-    updatePortfolioSummary();
-    // Watchlist logic would go here
+}
+
+function renderPortfolio() {
+    const container = document.getElementById("portfolioCards");
+    container.innerHTML = window.portfolio.map(p => `
+        <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}" onclick="selectStock('${p.symbol}')">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>${p.symbol}</strong>
+                <span class="${p.pl >= 0 ? 'green' : 'red'}">$${p.pl.toFixed(2)}</span>
+            </div>
+            <div style="font-size:11px; color:#94a3b8;">${p.shares} @ $${p.buyPrice.toFixed(2)}</div>
+        </div>
+    `).join("");
+}
+
+/* --- MASTER LOOP --- */
+async function masterUpdate() {
+    // Update Portfolio Prices
+    for(let p of window.portfolio){
+        const d = await getStock(p.symbol);
+        p.current = d.c;
+        p.pl = (p.current - p.buyPrice) * p.shares;
+    }
+    
+    // Update Watchlist Prices
+    for(let s of window.watchlist){
+        const d = await getStock(s.symbol);
+        s.price = d.c;
+        s.change = d.dp;
+    }
+
+    renderPortfolio();
+    renderWatchlist();
+    
+    // Summary
+    let inv = 0, val = 0;
+    window.portfolio.forEach(p => { inv += p.buyPrice * p.shares; val += p.current * p.shares; });
+    document.getElementById("totalInvested").innerText = inv.toFixed(2);
+    document.getElementById("totalValue").innerText = val.toFixed(2);
+    document.getElementById("totalPL").innerText = (val - inv).toFixed(2);
+    document.getElementById("totalReturn").innerText = inv > 0 ? ((val - inv) / inv * 100).toFixed(2) : "0";
 }
 
 showTab("dashboard");
+setInterval(masterUpdate, 30000); // Auto update every 30s
 </script>
 </body>
 </html>
