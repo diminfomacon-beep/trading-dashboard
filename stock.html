@@ -139,9 +139,9 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
             </div>
         </div>
 
-        <div class="right-col card" style="position: sticky; top: 80px; height: 600px;">
-            <h3>📈 Live Chart: <span id="chartSymbol" style="color: #60a5fa;">Select a Stock</span></h3>
-            <div id="portfolioInlineChart" style="height: 520px; background: #0f172a; border-radius: 8px;"></div>
+        <div class="right-col card" style="position: sticky; top: 80px; height: 500px; padding: 10px;">
+            <h3 style="margin-top: 0;">📈 ${symbol} History</h3>
+            <div id="portfolioInlineChart" style="height: 440px; border-radius: 8px; overflow: hidden;"></div>
         </div>
     </div>
 </div>
@@ -557,30 +557,35 @@ async function updatePortfolio(){
 function selectStock(symbol) {
     selectedStock = symbol;
     
-    // Update the label above the chart
     const chartLabel = document.getElementById("chartSymbol");
     if (chartLabel) chartLabel.innerText = symbol;
 
-    // Clear and Redraw the TradingView widget in the inline container
     const chartContainer = document.getElementById("portfolioInlineChart");
     if (chartContainer) {
         chartContainer.innerHTML = "";
         
+        // This configuration creates a clean, minimal line chart
         new TradingView.widget({
             "container_id": "portfolioInlineChart",
             "symbol": `NASDAQ:${symbol}`,
             "interval": "D",
             "theme": "dark",
-            "style": "1",
+            "style": "2", // <--- This sets it to 'Line' instead of 'Candles'
             "locale": "en",
             "autosize": true,
-            "hide_top_toolbar": false,
-            "hide_legend": false,
-            "save_image": false
+            "hide_top_toolbar": true,    // Removes the search and timeframes
+            "hide_side_toolbar": true,   // Removes drawing tools
+            "allow_symbol_change": false,
+            "save_image": false,
+            "details": false,            // Removes the right-side data panel
+            "hotlist": false,
+            "calendar": false,
+            "show_popup_button": false,
+            "backgroundColor": "rgba(15, 23, 42, 1)", // Matches your background #0f172a
+            "gridColor": "rgba(255, 255, 255, 0.05)"  // Makes grid lines almost invisible
         });
     }
 
-    // Refresh cards to apply the 'active' blue border CSS
     renderPortfolio();
 }
 
