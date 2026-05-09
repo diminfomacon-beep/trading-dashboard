@@ -17,145 +17,102 @@
 /* --- BASE RESET & MOBILE FIXES --- */
 body {margin: 0;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;background: #0f172a;color: white; overflow-x: hidden;touch-action: pan-y;}
 header {padding: 20px;background: #111827;text-align: center;font-size: 22px;font-weight: bold;}
-/* --- TABS & NAVIGATION --- */
-.tabs {display: flex;background: #1e293b;}
-.tabs button {flex: 1;padding: 15px;border: none;background: #1e293b;color: white;cursor: pointer;font-size: 14px;}
-.mobile-nav {position: fixed;bottom: 0;left: 0;right: 0;display: flex;background: #111827;border-top: 1px solid #334155;z-index: 9999;padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone notch */}
+
+.mobile-nav {position: fixed;bottom: 0;left: 0;right: 0;display: flex;background: #111827;border-top: 1px solid #334155;z-index: 9999;padding-bottom: env(safe-area-inset-bottom);}
 .mobile-nav button {flex: 1;padding: 15px;font-size: 24px;background: none;border: none;color: white;touch-action: manipulation;}
-.tab {display: none;padding: 15px;padding-bottom: 100px; /* Space for bottom nav */}
-/* --- CARDS & INPUTS --- */
-.card {background: #1e293b;padding: 15px;border-radius: 12px;margin-bottom: 15px;width: 100%;box-sizing: border-box; /* Crucial for mobile sizing */}
-input {padding: 12px;margin: 5px 0;border: none;border-radius: 6px;background: #334155;color: white;font-size: 16px; /* MAGIC NUMBER: Prevents iOS auto-zoom */width: 100%;box-sizing: border-box;}
+.tab {display: none;padding: 15px;padding-bottom: 100px;}
+
+.card {background: #1e293b;padding: 15px;border-radius: 12px;margin-bottom: 15px;width: 100%;box-sizing: border-box;}
+input {padding: 12px;margin: 5px 0;border: none;border-radius: 6px;background: #334155;color: white;font-size: 16px; width: 100%;box-sizing: border-box;}
 button {padding: 12px 16px;border: none;border-radius: 6px;cursor: pointer;background: #2563eb;color: white;font-weight: 600;touch-action: manipulation;}
-/* --- TABLES & STOCK LISTS --- */
-table {width: 100%;border-collapse: collapse;display: block;overflow-x: auto; /* Allow horizontal swipe for data */white-space: nowrap;-webkit-overflow-scrolling: touch;}
+
+table {width: 100%;border-collapse: collapse;display: block;overflow-x: auto; white-space: nowrap;-webkit-overflow-scrolling: touch;}
 td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
+
 .stock-card {background: #1e293b;padding: 15px;border-radius: 12px;margin-bottom: 10px;width: 100%;box-sizing: border-box;}
-.stock-card.active {border: 2px solid #3b82f6;background: #111827;/* Removed 'transform: scale' to prevent zoom/jitter */transition: 0.2s;}
-/* --- UTILITIES --- */
+.stock-card.active {border: 2px solid #3b82f6;background: #111827;transition: 0.2s;}
+
 .green { color: #10b981; }
 .red { color: #ef4444; }
-.suggestion {padding: 6px 12px;border-radius: 999px;font-weight: bold;display: inline-block;}
-.buy { background: #064e3b; color: #10b981; }
-.sell { background: #450a0a; color: #ef4444; }
-.hold { background: #78350f; color: #f59e0b; }
-#glossary p {padding: 8px 0;border-bottom: 1px solid #334155;font-size: 14px;}
-/* --- MODAL --- */
-#chartModal {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.7);z-index: 99999;display: none;align-items: center;justify-content: center;}
-#chartModalContent {width: 80%;height: 70%;background: #1e293b;padding: 20px;position: relative;box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);border: 1px solid #334155;}
-#mainChartModal {flex: 1;}
-#closeChartBtn {position: absolute;top: 15px;right: 15px;background: #ef4444;border: none;color: white;font-size: 18px;width: 44px; /* Slightly larger for easier tapping */height: 44px;border-radius: 50%;cursor: pointer;z-index: 10;}
 </style>
-
-
 </head>
 
 <body>
 
 <header>📈 AlphaSync</header>
-<div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid #334155;">
-    <button id="authButton" onclick="login()" style="background:#4285F4;">🔐 Login with Google</button>    
+
+<div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155;">
     <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="color: #94a3b8; font-size: 0.9em;">Active Trader:</span>
+        <span style="color: #94a3b8; font-size: 0.9em;">Trader:</span>
         <strong id="user-display-name" style="color: #60a5fa;">Guest User</strong>
-        <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
     </div>
+    <button id="authButton" style="background:#4285F4;">🔐 Login with Google</button>
 </div>
 
-<div class="tabs">
-    <div class="mobile-nav">
-        <button onclick="showTab('dashboard')">📊</button>
-        <button onclick="showTab('portfolio')">💼</button>
-        <button onclick="showTab('analyzer')">🧠</button>
-    </div>
+<div class="mobile-nav">
+    <button onclick="showTab('dashboard')">📊</button>
+    <button onclick="showTab('portfolio')">💼</button>
+    <button onclick="showTab('analyzer')">🧠</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="tab">
     <div class="card">
         <h3>🚨 Alerts</h3>
         <div id="alerts"></div>
-        <div class="card">
-            <h3>🏆 Top Opportunities</h3>
-            <div id="topStocks"></div>
-        </div>
-        
-        <h3 onclick="toggleGlossary()" style="cursor:pointer;">🧾Glossary <span id="glossaryArrow">▼</span></h3>
-
-        <div id="glossary" style="display:none;"></div>
-
-
+    </div>
+    <div class="card">
+        <h3>🏆 Top Opportunities</h3>
+        <div id="topStocks"></div>
+    </div>
+    <div class="card">
         <h3>👀 Watchlist</h3>
-
-        <input id="watchInput" placeholder="AAPL">
-        <button onclick="addToWatchlistFromInput()">Add</button>
-
+        <div style="display:flex; gap:10px;">
+            <input id="watchInput" placeholder="AAPL">
+            <button onclick="addToWatchlistFromInput()">Add</button>
+        </div>
         <table>
             <thead>
                 <tr>
-                    <th>Symbol</th>
-                    <th>Price</th>
-                    <th>Change</th>
-                    <th>Signal</th>
-                    <th>Trend</th>
-                    <th>Vol</th>
-                    <th>Strength</th>
-                    <th>Confidence</th>
-                    <th>Action</th>
+                    <th>Symbol</th><th>Price</th><th>Change</th><th>Signal</th><th>Trend</th><th>Vol</th><th>Strength</th><th>Action</th>
                 </tr>
             </thead>
-
             <tbody id="watchlist"></tbody>
         </table>
     </div>
-
 </div>
 
 <div id="portfolio" class="tab">
-    
-    <header style="margin-bottom: 20px;">
+    <header style="margin-bottom: 10px;">
         <h2 style="margin: 0;">💼 My Portfolio</h2>
-        <div class="card" style="display: flex; gap: 30px; margin-top: 15px; padding: 15px; flex-wrap: wrap;">
-            <span>💰 Invested: <strong>$<span id="totalInvested">0</span></strong></span>
-            <span>📊 Value: <strong>$<span id="totalValue">0</span></strong></span>
-            <span class="green">📈 P/L: <strong>$<span id="totalPL">0</span></strong></span>
-            <span class="green">📈 Return: <strong><span id="totalReturn">0</span>%</strong></span>
+        <div class="card" style="display: flex; gap: 20px; margin-top: 10px; padding: 15px; flex-wrap: wrap; justify-content: space-around;">
+            <span>💰 Invested: <strong id="totalInvested">0</strong></span>
+            <span>📊 Value: <strong id="totalValue">0</strong></span>
+            <span class="green">📈 P/L: <strong id="totalPL">0</strong></span>
+            <span class="green">📈 Return: <strong id="totalReturn">0</strong>%</span>
         </div>
     </header>
 
-    <div class="card" style="height: 25vh; min-height: 200px; padding: 10px; margin-bottom: 20px;">
+    <div class="card" style="height: 25vh; min-height: 200px; padding: 5px; margin-bottom: 15px;">
         <div id="portfolioInlineChart" style="height: 100%; width: 100%;"></div>
     </div>
 
-    <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-        <h4 style="margin: 0; white-space: nowrap;">➕ Add Position:</h4>
-        <input id="pSymbol" placeholder="Symbol" style="flex: 1; min-width: 80px;">
-        <input id="pShares" type="number" placeholder="Shares" style="flex: 1; min-width: 80px;">
-        <input id="pPrice" type="number" placeholder="Price" style="flex: 1; min-width: 80px;">
-        <button style="background: #2563eb; padding: 10px 20px;" onclick="addPortfolioStock()">Add Position</button>
+    <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 15px;">
+        <h4 style="margin: 0;">➕ Add:</h4>
+        <input id="pSymbol" placeholder="AAPL" style="flex:1;">
+        <input id="pShares" type="number" placeholder="Shares" style="flex:1;">
+        <input id="pPrice" type="number" placeholder="Price" style="flex:1;">
+        <button onclick="addPortfolioStock()">Add Position</button>
     </div>
 
-    <div id="portfolioCards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        </div>
-
+    <div id="portfolioCards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
 </div>
 
-<!-- ANALYZER -->
 <div id="analyzer" class="tab">
     <div class="card">
         <h3>Stock Analyzer</h3>
         <input id="aSymbol" placeholder="TSLA">
         <button onclick="analyzeStock()">Analyze</button>
         <div id="analysis"></div>
-    </div>
-</div>
-
-<!-- FULLSCREEN CHART MODAL -->
-<div id="chartModal"style="display:none;"onclick="closeChartModal(event)">
-    <div id="chartModalContent">
-        <button id="closeChartBtn"onclick="closeChartModal(event)">❌</button>
-        <h3 id="selectedStockModal"></h3>
-        <div id="mainChartModal"style="flex:1;"></div>
     </div>
 </div>
 
@@ -170,8 +127,7 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
         projectId: "trading-app-847e3",
         storageBucket: "trading-app-847e3.firebasestorage.app",
         messagingSenderId: "369458346233",
-        appId: "1:369458346233:web:1cf817dcb8005d013e0a28",
-        measurementId: "G-WRNH098G04"
+        appId: "1:369458346233:web:1cf817dcb8005d013e0a28"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -179,671 +135,159 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // Make tools available globally
     window.auth = auth;
     window.db = db;
-    window.provider = provider;
+    window.setDoc = setDoc;
+    window.doc = doc;
 
-    // --- THE AUTH STATE LOGIC ---
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         const nameEl = document.getElementById("user-display-name");
         const authBtn = document.getElementById("authButton");
 
         if (user) {
-            // 1. Update Name
-            if (nameEl) nameEl.innerText = user.displayName || user.email;
-
-            // 2. Change Button to Logout
-            if (authBtn) {
-                authBtn.innerText = "🚪 Logout";
-                authBtn.style.background = "#334155"; // Darker color for logout
-                authBtn.onclick = () => {
-                    auth.signOut().then(() => {
-                        location.reload(); // Refresh to clear data on logout
-                    });
-                };
+            nameEl.innerText = user.displayName || user.email;
+            authBtn.innerText = "🚪 Logout";
+            authBtn.style.background = "#334155";
+            authBtn.onclick = () => auth.signOut().then(() => location.reload());
+            
+            // Fetch saved data
+            const ref = doc(db, "users", user.uid);
+            const snap = await getDoc(ref);
+            if (snap.exists()) {
+                window.portfolio = snap.data().portfolio || [];
+                window.watchlist = snap.data().watchlist || [];
+                masterUpdate();
             }
-
-        // 3. Load Data
-        if (window.loadUserData) window.loadUserData(user.uid);
-
-    } else {
-        // User is logged out
-        if (nameEl) nameEl.innerText = "Guest User";
-        if (authBtn) {
+        } else {
+            nameEl.innerText = "Guest User";
             authBtn.innerText = "🔐 Login with Google";
             authBtn.style.background = "#4285F4";
-            authBtn.onclick = window.login; // Point back to the login function
+            authBtn.onclick = () => signInWithPopup(auth, provider);
         }
-    }
     });
-
-    // Re-bind the login function so the button works
-    window.login = async () => {
-        try {
-            await signInWithPopup(auth, provider);
-        } catch (err) {
-            console.error("Login error:", err);
-        }
-    };
 </script>
 
 <script>
-
 const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
-
-let watchlist = [];
-let portfolio = [];
-let alerts = [];
-let hasInitializedChart = false;
+window.watchlist = [];
+window.portfolio = [];
 let selectedStock = "";
-let currentUser = {name: "Trader One",email: "trader1@example.com"};
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        loadUserData(user.uid);
-    }
-});
-/* ---------------- TABS ---------------- */
-function showTab(tab){    document.querySelectorAll(".tab")    .forEach(t=>t.style.display="none");    document.getElementById(tab).style.display="block";}
-function getConfidence(score){    return Math.max(0, Math.min(100, score || 0));}
+function showTab(tab){
+    document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
+    document.getElementById(tab).style.display="block";
+}
 
-function scoreColor(score){    if(score >= 75) return "#10b981";    if(score >= 50) return "#f59e0b";  return "#ef4444";}
-
-function getSignalReason(s){return `Trend: ${s.trendScore || 0}, Vol: ${s.volatilityScore || 0}, Strength: ${s.strengthScore || 0}`;}
-/* ---------------- API ---------------- */
 async function getStock(symbol){
     try{
-        const res = await fetch(
-            `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`
-        );
+        const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
         return await res.json();
-    }catch(e){
-        return {c:0,dp:0};
-    }
+    }catch(e){ return {c:0,dp:0}; }
 }
 
-/* ---------------- WATCHLIST ---------------- */
-function addToWatchlistFromInput(){
-    const s = document.getElementById("watchInput").value.toUpperCase();
-
-    if(!watchlist.find(x=>x.symbol===s)){
-        watchlist.push({symbol:s,price:0,change:0});
-    }
-
-    renderWatchlist();
-    saveUserData();
-}
-function removeWatch(i){watchlist.splice(i,1);renderWatchlist();saveUserData();}
-async function updateWatchlist(){
-
-    for(let s of watchlist){
-
-        const d = await getStock(s.symbol);
-
-        s.price = d.c;
-        s.change = d.dp;
-
-        // NEW SCORES
-        s.trendScore = getTrendScore(d.dp);
-        s.volatilityScore = getVolatilityScore(d.dp);
-        s.strengthScore = getStrengthScore(d.dp);
-
-        s.suggestion = getSuggestion(d.dp);
-    }
-    if (auth.currentUser) {
-    await saveUserData();
-    }
-}
-function getTrendScore(dp){
-
-    let score = 50;
-
-    if(dp > 0) score += dp * 5;
-    if(dp < 0) score += dp * 5;
-
-    if(score > 100) score = 100;
-    if(score < 0) score = 0;
-
-    return Math.round(score);
-}
-function getVolatilityScore(dp){ let vol = Math.abs(dp) * 10;if(vol > 100) vol = 100;return Math.round(vol);}
-function getStrengthScore(dp){
-
-    let trend = getTrendScore(dp);
-    let vol = getVolatilityScore(dp);
-
-    let strength = trend - (vol * 0.4);
-
-    if(strength > 100) strength = 100;
-    if(strength < 0) strength = 0;
-
-    return Math.round(strength);
-}
-function updatePortfolioSummary(){
-
-    let invested = 0;
-    let current = 0;
-
-    for(let p of portfolio){
-
-        invested += p.buyPrice * p.shares;
-        current += p.current * p.shares;
-    }
-
-    let pl = current - invested;
-    let pct = invested > 0 ? (pl / invested) * 100 : 0;
-
-    document.getElementById("totalInvested").innerText =
-        invested.toFixed(2);
-
-    document.getElementById("totalValue").innerText =
-        current.toFixed(2);
-
-    document.getElementById("totalPL").innerText =
-        pl.toFixed(2);
-
-    document.getElementById("totalReturn").innerText =
-        pct.toFixed(2);
-}
-function renderWatchlist(){
-
-    const el = document.getElementById("watchlist");
-
-    if(!el){
-        console.error("watchlist tbody missing");
-        return;
-    }
-
-    el.innerHTML =
-   watchlist.map((s,i)=>`
-
-<tr>
-
-    <td>${s.symbol}</td>
-
-    <td>$${(s.price || 0).toFixed(2)}</td>
-
-    <td>${(s.change || 0).toFixed(2)}%</td>
-
-    <!-- SIGNAL (with hover tooltip) -->
-    <td title="${getAIInsight(s)}">
-        ${s.suggestion || "Loading..."}
-    </td>
-
-    <!-- TREND BAR -->
-    <td>
-        <div style="width:80px;background:#334155;height:8px;border-radius:6px;">
-            <div style="width:${s.trendScore || 0}%;background:#3b82f6;height:100%;"></div>
-        </div>
-    </td>
-
-    <!-- VOLATILITY BAR -->
-    <td>
-        <div style="width:80px;background:#334155;height:8px;border-radius:6px;">
-            <div style="
-                width:${s.volatilityScore || 0}%;
-                background:#f59e0b;
-                height:100%;
-            "></div>
-        </div>
-    </td>
-
-    <!-- STRENGTH BAR -->
-    <td>
-        <div style="width:80px;background:#334155;height:8px;border-radius:6px;">
-            <div style="
-                width:${s.strengthScore || 0}%;
-                background:${scoreColor(s.strengthScore || 0)};
-                height:100%;
-            "></div>
-        </div>
-    </td>
-
-    <!-- CONFIDENCE -->
-    <td>
-        ${getConfidence(s.strengthScore || 0)}%
-    </td>
-
-    <td>
-        <button onclick="removeWatch(${i})">❌</button>
-    </td>
-
-</tr>
-
-`).join("");
-}
-function getAIlabel(score){ if(score >= 75) return "🔥 High Conviction Buy"; if(score >= 50) return "🟡 Speculative"; return "🔴 Avoid";}
-function getTopWatchlist(){ return [...watchlist] .sort((a,b)=>b.strengthScore - a.strengthScore) .slice(0,3);}
-let glossaryOpen = false;
-
-function toggleGlossary(){
-
-    glossaryOpen = !glossaryOpen;
-
-    const g = document.getElementById("glossary");
-    const arrow = document.getElementById("glossaryArrow");
-
-    if(glossaryOpen){
-        g.style.display = "block";
-        arrow.innerText = "▲";
-        renderGlossary();
-    } else {
-        g.style.display = "none";
-        arrow.innerText = "▼";
-    }
-}
-function renderTopStocks(){
-
-    const top = getTopWatchlist();
-
-    document.getElementById("topStocks").innerHTML =
-    top.map(s=>`
-
-        <div style="
-            padding:10px;
-            margin-bottom:10px;
-            background:#111827;
-            border-radius:10px;
-        ">
-
-            <h3>${s.symbol}</h3>
-
-            <p>
-                Strength: ${s.strengthScore}
-            </p>
-
-            <p>
-                Trend: ${s.trendScore} |
-                Vol: ${s.volatilityScore}
-            </p>
-
-            <p style="font-weight:bold;">
-                ${getAIlabel(s.strengthScore)}
-            </p>
-
-        </div>
-
-    `).join("");
-}
-async function login(){
+async function saveUserData() {
+    const user = window.auth.currentUser;
+    if (!user) return;
     try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        alert(`Logged in as ${user.displayName}`);
-
-
-    } catch (err) {
-        console.error("Login error:", err);
-    }
+        await window.setDoc(window.doc(window.db, "users", user.uid), {
+            portfolio: window.portfolio,
+            watchlist: window.watchlist
+        }, { merge: true });
+    } catch (e) { console.error("Save error", e); }
 }
-async function loadUserData(uid) {
-    // Check if db is ready (bridging the module gap)
-    if (!window.db) return;
 
-    const ref = doc(window.db, "users", uid);
-    const snap = await getDoc(ref);
-
-    if (snap.exists()) {
-        const data = snap.data();
-        portfolio = data.portfolio || [];
-        watchlist = data.watchlist || [];
-    }
-
-    renderPortfolio();
-    renderWatchlist();
-    masterUpdate();
-}
-async function saveUserData(){ const user = auth.currentUser;if(!user) return; await setDoc(doc(db, "users", user.uid), { portfolio, watchlist});}
-
-/* ---------------- PORTFOLIO ---------------- */
 async function addPortfolioStock() {
     const symbol = document.getElementById("pSymbol").value.toUpperCase();
     const shares = parseFloat(document.getElementById("pShares").value);
     const price = parseFloat(document.getElementById("pPrice").value);
-
     if (!symbol || isNaN(shares)) return;
 
     const data = await getStock(symbol);
-    const existing = portfolio.find(p => p.symbol === symbol);
+    const existing = window.portfolio.find(p => p.symbol === symbol);
 
     if (existing) {
         const total = existing.shares + shares;
         existing.buyPrice = ((existing.shares * existing.buyPrice) + (shares * price)) / total;
         existing.shares = total;
     } else {
-        portfolio.push({
-            symbol,
-            shares,
-            buyPrice: price,
-            current: data.c,
-            pl: 0
-        });
+        window.portfolio.push({ symbol, shares, buyPrice: price, current: data.c, pl: 0 });
     }
+    masterUpdate();
+    saveUserData();
+}
 
+function removePortfolio(symbol){ 
+    window.portfolio = window.portfolio.filter(p => p.symbol !== symbol);
+    masterUpdate();
+    saveUserData();
+}
+
+function selectStock(symbol) {
+    selectedStock = symbol;
+    const container = document.getElementById("portfolioInlineChart");
+    container.innerHTML = "";
+    new TradingView.widget({
+        "container_id": "portfolioInlineChart",
+        "symbol": `NASDAQ:${symbol}`,
+        "interval": "D",
+        "theme": "dark",
+        "style": "2",
+        "autosize": true,
+        "hide_top_toolbar": true,
+        "hide_legend": true,
+        "backgroundColor": "#1e293b"
+    });
     renderPortfolio();
-    // CRITICAL: This sends the new list to Firebase
-    await saveUserData(); 
+}
+
+function renderPortfolio() {
+    const container = document.getElementById("portfolioCards");
+    if (window.portfolio.length === 0) {
+        container.innerHTML = "<p>No positions yet.</p>";
+        return;
+    }
+    container.innerHTML = window.portfolio.map(p => `
+        <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}" onclick="selectStock('${p.symbol}')">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>${p.symbol}</strong>
+                <span class="${p.pl >= 0 ? 'green' : 'red'}">$${p.pl.toFixed(2)}</span>
+            </div>
+            <div style="font-size:12px; color:#94a3b8; margin:5px 0;">${p.shares} shares @ $${p.buyPrice.toFixed(2)}</div>
+            <button onclick="event.stopPropagation(); removePortfolio('${p.symbol}')" style="background:none; color:#ef4444; padding:0; font-size:11px;">Remove</button>
+        </div>
+    `).join("");
 }
 
 async function updatePortfolio(){
-
-    for(let p of portfolio){
-
+    for(let p of window.portfolio){
         const d = await getStock(p.symbol);
-
         p.current = d.c;
-
-        p.pl = (p.current - p.buyPrice)*p.shares;
-    }
-    if (auth.currentUser) {
-    await saveUserData();
+        p.pl = (p.current - p.buyPrice) * p.shares;
     }
 }
 
-// 1. SELECT STOCK (THE INLINE VERSION)
-function selectStock(symbol) {
-    selectedStock = symbol;
-    
-    const chartContainer = document.getElementById("portfolioInlineChart");
-    if (chartContainer) {
-        chartContainer.innerHTML = "";
-        
-        new TradingView.widget({
-            "container_id": "portfolioInlineChart",
-            "symbol": `NASDAQ:${symbol}`,
-            "interval": "D",
-            "theme": "dark",
-            "style": "2", // Simple Line
-            "autosize": true,
-            "hide_top_toolbar": true,
-            "hide_legend": true, // Hiding legend makes the 25% height look cleaner
-            "save_image": false,
-            "backgroundColor": "#1e293b", // Matches card background
-            "gridColor": "rgba(255, 255, 255, 0.05)"
-        });
-    }
-    renderPortfolio();
-}
-
-// 2. RENDER CARDS
-function renderPortfolio() {
-    const container = document.getElementById("portfolioCards");
-    if (!container) return;
-
-    if (portfolio.length === 0) {
-        container.innerHTML = "<p style='color: #64748b; padding: 10px;'>No positions yet.</p>";
-        return;
-    }
-
-    container.innerHTML = portfolio.map(p => {
-        // Check if this specific card is the one currently selected
-        const isActive = p.symbol === selectedStock;
-        const statusClass = p.pl >= 0 ? 'green' : 'red';
-        
-        return `
-        <div class="stock-card ${isActive ? 'active' : ''}" 
-             onclick="selectStock('${p.symbol}')"
-             style="cursor: pointer; padding: 15px; border-radius: 10px; margin-bottom: 10px; 
-                    background: ${isActive ? '#1e293b' : '#111827'}; 
-                    border: 1px solid ${isActive ? '#3b82f6' : '#334155'};
-                    transition: all 0.2s ease;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 1.1em;">${p.symbol}</strong>
-                <span class="${statusClass}" style="font-weight: bold;">
-                    ${p.pl >= 0 ? '+' : ''}$${p.pl.toFixed(2)}
-                </span>
-            </div>
-            <div style="font-size: 0.85em; color: #94a3b8; margin-top: 5px;">
-                ${p.shares} shares @ $${p.buyPrice.toFixed(2)}
-            </div>
-            <button onclick="event.stopPropagation(); removePortfolio('${p.symbol}')" 
-                    style="background: transparent; color: #ef4444; border: none; font-size: 11px; 
-                           padding: 8px 0 0 0; cursor: pointer; text-decoration: underline;">
-                Remove Position
-            </button>
-        </div>
-    `}).join("");
-}
-function removePortfolio(symbol){ portfolio = portfolio.filter(p => p.symbol !== symbol);renderPortfolio();saveUserData();}
-function openChartModal(symbol){
-
-    const modal = document.getElementById("chartModal");
-    modal.style.display = "flex";
-
-    document.getElementById("selectedStockModal").innerText = symbol;
-
-    document.getElementById("mainChartModal").innerHTML = "";
-
-    window.tvWidget = new TradingView.widget({
-
-        container_id: "mainChartModal",
-        symbol: `NASDAQ:${symbol}`,
-        interval: "D",
-        theme: "dark",
-        style: "1",
-        hide_top_toolbar: false,
-        hide_legend: false,
-        autosize: true
+function updatePortfolioSummary(){
+    let invested = 0, current = 0;
+    window.portfolio.forEach(p => {
+        invested += p.buyPrice * p.shares;
+        current += p.current * p.shares;
     });
+    const pl = current - invested;
+    const pct = invested > 0 ? (pl / invested) * 100 : 0;
+    document.getElementById("totalInvested").innerText = invested.toFixed(2);
+    document.getElementById("totalValue").innerText = current.toFixed(2);
+    document.getElementById("totalPL").innerText = pl.toFixed(2);
+    document.getElementById("totalReturn").innerText = pct.toFixed(2);
 }
 
-function closeChartModal(e){
-
-    if(e && e.target.id !== "chartModal" && e.target.id !== "closeChartBtn"){
-        return;
-    }
-
-    document.getElementById("chartModal").style.display = "none";
-
-    document.getElementById("mainChartModal").innerHTML = "";
-
-    if(window.tvWidget){
-        window.tvWidget.remove();
-    }
-}
-
-
-/* ---------------- ALERTS ---------------- */
-function generateAlerts(){
-
-    alerts = [];
-
-    for(let p of portfolio){
-
-        const pct =
-        (p.pl/(p.buyPrice*p.shares))*100;
-
-        if(pct < -10){
-            alerts.push(`${p.symbol} 🔴 CUT LOSS`);
-        }
-
-        if(pct > 15){
-            alerts.push(`${p.symbol} 🟢 TAKE PROFIT`);
-        }
-    }
-}
-
-function renderAlerts(){
-    document.getElementById("alerts").innerHTML =
-    alerts.length
-    ? alerts.map(a=>`<p>${a}</p>`).join("")
-    : "<p>🟢 No alerts</p>";
-}
-
-/* ---------------- ANALYZER ---------------- */
-async function analyzeStock(){
-
-    const s =
-        document.getElementById("aSymbol").value.toUpperCase();
-
-    const d = await getStock(s);
-
-    let rec =
-        d.dp > 3 ? "🟢 BUY"
-        : d.dp < -3 ? "🔴 SELL"
-        : "🟡 HOLD";
-
-    document.getElementById("analysis").innerHTML = `
-        <h3>${s}</h3>
-        <h1>${rec}</h1>
-
-        <p>
-            ${getAIInsight({
-                trendScore: getTrendScore(d.dp),
-                volatilityScore: getVolatilityScore(d.dp),
-                strengthScore: getStrengthScore(d.dp)
-            })}
-        </p>
-
-        <b>${getVerdict({
-            strengthScore: getStrengthScore(d.dp)
-        })}</b>
-
-        <button onclick="addToWatchlist('${s}')">
-            ➕ Add to Watchlist
-        </button>
-    `;
-}
-
-function addToWatchlist(symbol){
-  console.log("Adding:", symbol);
-  console.log("Watchlist:", watchlist);
-
-    symbol = symbol.toUpperCase();
-
-    // prevent duplicates
-    if(watchlist.find(s => s.symbol === symbol)){
-        return;
-    }
-
-    watchlist.push({
-
-        symbol: symbol,
-
-        price: 0,
-        change: 0,
-
-        suggestion: "Loading...",
-
-        trendScore: 0,
-        volatilityScore: 0,
-        strengthScore: 0
-    });
-
-    renderWatchlist();
-
-    // force immediate update
-    updateWatchlist();
-    saveUserData();
-}
-function getSuggestion(dp){
-
-    if(dp >= 3) return "🟢 BUY";
-    if(dp <= -3) return "🔴 SELL";
-    if(dp > 1) return "🟡 WATCH";
-    if(dp < -1) return "🟡 WEAK";
-    return "⚪ HOLD";
-}
-
-function getAIInsight(s){
-
-    const trend = s.trendScore || 0;
-    const vol = s.volatilityScore || 0;
-    const strength = s.strengthScore || 0;
-
-    let insight = "";
-
-    // TREND INTERPRETATION
-    if(trend >= 70){
-        insight += "Strong upward momentum detected. ";
-    } else if(trend <= 40){
-        insight += "Weak or declining momentum. ";
-    } else {
-        insight += "Sideways / uncertain trend. ";
-    }
-
-    // VOLATILITY INTERPRETATION
-    if(vol >= 60){
-        insight += "High volatility increases risk. ";
-    } else if(vol <= 25){
-        insight += "Price is relatively stable. ";
-    } else {
-        insight += "Moderate volatility present. ";
-    }
-
-    // STRENGTH INTERPRETATION
-    if(strength >= 75){
-        insight += "Overall setup is strong.";
-    } else if(strength >= 50){
-        insight += "Mixed signals, watch closely.";
-    } else {
-        insight += "Weak setup, avoid or reduce exposure.";
-    }
-
-    return insight;
-}
-function getVerdict(s){
-
-    if(s.strengthScore >= 75) return "🔥 High Conviction Buy";
-    if(s.strengthScore >= 50) return "🟡 Speculative";
-    return "🔴 Avoid";
-}
-
-function renderGlossary(){
-
-    document.getElementById("glossary").innerHTML = `
-
-        <p><b>🟢 BUY:</b> Strong short-term upward momentum (positive trend, low risk)</p>
-
-        <p><b>🔴 SELL:</b> Weak momentum or strong downward pressure</p>
-
-        <p><b>🟡 HOLD:</b> No clear direction — wait for confirmation</p>
-
-        <hr>
-
-        <p><b>🔥 High Conviction Buy:</b> Strength Score ≥ 75 (strong trend + stable volatility)</p>
-
-        <p><b>🟡 Speculative:</b> Strength Score 50–74 (moderate opportunity, some risk)</p>
-
-        <p><b>🔴 Avoid:</b> Strength Score < 50 (weak trend or unstable movement)</p>
-
-        <hr>
-
-        <p><b>📈 Trend Score:</b> Measures directional momentum (0–100)</p>
-
-        <p><b>📊 Volatility Score:</b> Measures price instability (0–100)</p>
-
-        <p><b>💪 Strength Score:</b> Combined quality of trend vs risk</p>
-
-    `;
-}
-
-/* ---------------- MASTER LOOP ---------------- */
 async function masterUpdate(){
-
     await updatePortfolio();
-    await updateWatchlist();
-
-    generateAlerts();
-
     renderPortfolio();
-    renderWatchlist();
-    renderAlerts();
-
-    renderTopStocks();
-    renderGlossary();
     updatePortfolioSummary();
+    // Watchlist logic would go here
 }
 
-setInterval(masterUpdate,10000);
-
-/* ---------------- INIT ---------------- */
 showTab("dashboard");
-masterUpdate();
-
 </script>
-
 </body>
 </html>
