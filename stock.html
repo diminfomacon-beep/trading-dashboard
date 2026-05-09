@@ -5,222 +5,57 @@
 <title>AlphaSync</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="manifest" href="manifest.json">
-
 <meta name="theme-color" content="#0f172a">
-
 <link rel="apple-touch-icon" href="7629A9E9-076E-4EBF-A8FA-9A7727E79D59.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 <meta name="apple-mobile-web-app-title" content="SignalForge">
 
 <style>
-
-
 /* --- BASE RESET & MOBILE FIXES --- */
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    overflow-x: hidden; /* Prevents horizontal wiggle */
-    touch-action: pan-y; /* Prevents accidental double-tap zoom */
-}
-
-header {
-    padding: 20px;
-    background: #111827;
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-}
-
+body {margin: 0;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;background: #0f172a;color: white; overflow-x: hidden;touch-action: pan-y;}
+header {padding: 20px;background: #111827;text-align: center;font-size: 22px;font-weight: bold;}
 /* --- TABS & NAVIGATION --- */
-.tabs {
-    display: flex;
-    background: #1e293b;
-}
-
-.tabs button {
-    flex: 1;
-    padding: 15px;
-    border: none;
-    background: #1e293b;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.mobile-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    background: #111827;
-    border-top: 1px solid #334155;
-    z-index: 9999;
-    padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone notch */
-}
-
-.mobile-nav button {
-    flex: 1;
-    padding: 15px;
-    font-size: 24px;
-    background: none;
-    border: none;
-    color: white;
-    touch-action: manipulation;
-}
-
-.tab {
-    display: none;
-    padding: 15px;
-    padding-bottom: 100px; /* Space for bottom nav */
-}
-
+.tabs {display: flex;background: #1e293b;}
+.tabs button {flex: 1;padding: 15px;border: none;background: #1e293b;color: white;cursor: pointer;font-size: 14px;}
+.mobile-nav {position: fixed;bottom: 0;left: 0;right: 0;display: flex;background: #111827;border-top: 1px solid #334155;z-index: 9999;padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone notch */}
+.mobile-nav button {flex: 1;padding: 15px;font-size: 24px;background: none;border: none;color: white;touch-action: manipulation;}
+.tab {display: none;padding: 15px;padding-bottom: 100px; /* Space for bottom nav */}
 /* --- CARDS & INPUTS --- */
-.card {
-    background: #1e293b;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    width: 100%;
-    box-sizing: border-box; /* Crucial for mobile sizing */
-}
-
-input {
-    padding: 12px;
-    margin: 5px 0;
-    border: none;
-    border-radius: 6px;
-    background: #334155;
-    color: white;
-    font-size: 16px; /* MAGIC NUMBER: Prevents iOS auto-zoom */
-    width: 100%;
-    box-sizing: border-box;
-}
-
-button {
-    padding: 12px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
-    touch-action: manipulation;
-}
-
+.card {background: #1e293b;padding: 15px;border-radius: 12px;margin-bottom: 15px;width: 100%;box-sizing: border-box; /* Crucial for mobile sizing */}
+input {padding: 12px;margin: 5px 0;border: none;border-radius: 6px;background: #334155;color: white;font-size: 16px; /* MAGIC NUMBER: Prevents iOS auto-zoom */width: 100%;box-sizing: border-box;}
+button {padding: 12px 16px;border: none;border-radius: 6px;cursor: pointer;background: #2563eb;color: white;font-weight: 600;touch-action: manipulation;}
 /* --- TABLES & STOCK LISTS --- */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    display: block;
-    overflow-x: auto; /* Allow horizontal swipe for data */
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-}
-
-td, th {
-    border: 1px solid #334155;
-    padding: 10px;
-    font-size: 14px;
-}
-
-.stock-card {
-    background: #1e293b;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.stock-card.active {
-    border: 2px solid #3b82f6;
-    background: #111827;
-    /* Removed 'transform: scale' to prevent zoom/jitter */
-    transition: 0.2s;
-}
-
+table {width: 100%;border-collapse: collapse;display: block;overflow-x: auto; /* Allow horizontal swipe for data */white-space: nowrap;-webkit-overflow-scrolling: touch;}
+td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
+.stock-card {background: #1e293b;padding: 15px;border-radius: 12px;margin-bottom: 10px;width: 100%;box-sizing: border-box;}
+.stock-card.active {border: 2px solid #3b82f6;background: #111827;/* Removed 'transform: scale' to prevent zoom/jitter */transition: 0.2s;}
 /* --- UTILITIES --- */
 .green { color: #10b981; }
 .red { color: #ef4444; }
-
-.suggestion {
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-weight: bold;
-    display: inline-block;
-}
-
+.suggestion {padding: 6px 12px;border-radius: 999px;font-weight: bold;display: inline-block;}
 .buy { background: #064e3b; color: #10b981; }
 .sell { background: #450a0a; color: #ef4444; }
 .hold { background: #78350f; color: #f59e0b; }
-
-#glossary p {
-    padding: 8px 0;
-    border-bottom: 1px solid #334155;
-    font-size: 14px;
-}
-
+#glossary p {padding: 8px 0;border-bottom: 1px solid #334155;font-size: 14px;}
 /* --- MODAL --- */
-#chartModal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#chartModalContent {
-    width: 100%;
-    height: 100%;
-    background: #0f172a;
-    padding: 10px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-#mainChartModal {
-    flex: 1;
-}
-
-#closeChartBtn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #ef4444;
-    border: none;
-    color: white;
-    font-size: 18px;
-    width: 44px; /* Slightly larger for easier tapping */
-    height: 44px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 10;
-}
-
-
+#chartModal {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.95);z-index: 99999;display: flex;align-items: center;justify-content: center;}
+#chartModalContent {width: 100%;height: 100%;background: #0f172a;padding: 10px;position: relative;display: flex;flex-direction: column;}
+#mainChartModal {flex: 1;}
+#closeChartBtn {position: absolute;top: 15px;right: 15px;background: #ef4444;border: none;color: white;font-size: 18px;width: 44px; /* Slightly larger for easier tapping */height: 44px;border-radius: 50%;cursor: pointer;z-index: 10;}
 </style>
+
+
 </head>
 
 <body>
 
 <header>📈 AlphaSync</header>
 <div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid #334155;">
-        <button id="authButton" onclick="login()" style="background:#4285F4;">🔐 Login with Google</button>    <div style="display: flex; align-items: center; gap: 10px;">
+    <button id="authButton" onclick="login()" style="background:#4285F4;">🔐 Login with Google</button>    
+    <div style="display: flex; align-items: center; gap: 10px;">
         <span style="color: #94a3b8; font-size: 0.9em;">Active Trader:</span>
         <strong id="user-display-name" style="color: #60a5fa;">Guest User</strong>
         <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
@@ -228,159 +63,101 @@ td, th {
 </div>
 
 <div class="tabs">
-<div class="mobile-nav">
-
-    <button onclick="showTab('dashboard')">📊</button>
-    <button onclick="showTab('portfolio')">💼</button>
-    <button onclick="showTab('analyzer')">🧠</button>
-
+    <div class="mobile-nav">
+        <button onclick="showTab('dashboard')">📊</button>
+        <button onclick="showTab('portfolio')">💼</button>
+        <button onclick="showTab('analyzer')">🧠</button>
+    </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="tab">
-
     <div class="card">
-        <h2>🚨 Alerts</h2>
+        <h3>🚨 Alerts</h3>
         <div id="alerts"></div>
         <div class="card">
-            <h2>🏆 Top Opportunities</h2>
+            <h3>🏆 Top Opportunities</h3>
             <div id="topStocks"></div>
         </div>
         
-    <h2 onclick="toggleGlossary()" style="cursor:pointer;">
-        📘 Signal Glossary <span id="glossaryArrow">▼</span>
-    </h2>
-    <div class="card">
-
-        
+        <h3 onclick="toggleGlossary()" style="cursor:pointer;">🧾Glossary <span id="glossaryArrow">▼</span></h3>
 
         <div id="glossary" style="display:none;"></div>
 
-    </div>
 
-
-    </div>
-
-    <div class="card">
-        <h2>📌 Watchlist</h2>
+        <h3>👀 Watchlist</h3>
 
         <input id="watchInput" placeholder="AAPL">
         <button onclick="addToWatchlistFromInput()">Add</button>
 
         <table>
-    <thead>
-        <tr>
-    <th>Symbol</th>
-    <th>Price</th>
-    <th>Change</th>
-    <th>Signal</th>
-    <th>Trend</th>
-    <th>Vol</th>
-    <th>Strength</th>
-    <th>Confidence</th>
-    <th>Action</th>
-</tr>
-    </thead>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                    <th>Change</th>
+                    <th>Signal</th>
+                    <th>Trend</th>
+                    <th>Vol</th>
+                    <th>Strength</th>
+                    <th>Confidence</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
 
-    <tbody id="watchlist"></tbody>
-</table>
+            <tbody id="watchlist"></tbody>
+        </table>
     </div>
 
 </div>
 
 <!-- PORTFOLIO -->
-<!-- PORTFOLIO -->
 <div id="portfolio" class="tab">
-
     <!-- SUMMARY -->
     <div class="card">
-
-        <h2>📊 Portfolio Summary</h2>
-
+        <h3>📊 Portfolio Summary</h3>
         <p>💰 Invested: $<span id="totalInvested">0</span></p>
-
         <p>📊 Current Value: $<span id="totalValue">0</span></p>
-
-        <p class="green">
-            📈 P/L: $<span id="totalPL">0</span>
-        </p>
-
-        <p class="green">
-            📈 Return: <span id="totalReturn">0</span>%
-        </p>
-
+        <p class="green">📈 P/L: $<span id="totalPL">0</span></p>
+        <p class="green">📈 Return: <span id="totalReturn">0</span>%</p>
     </div>
-
     <!-- PORTFOLIO LIST -->
     <div class="card">
-
-        <h2>💼 My Portfolio</h2>
-
+        <h3>💼 My Portfolio</h3>
         <p>Tap a stock to open fullscreen chart</p>
         <h3 id="selectedStock" style="display:none;"></h3>
-
         <div id="portfolioCards"></div>
-
     </div>
-
     <!-- ADD POSITION -->
     <div class="card">
-
-        <h2>➕ Add Position</h2>
-
+        <h3>➕ Add Position</h3>
         <input id="pSymbol" placeholder="AAPL">
-
-        <input id="pShares"
-               type="number"
-               placeholder="Shares">
-
-        <input id="pPrice"
-               type="number"
-               placeholder="Buy Price">
-
+        <input id="pShares"type="number"placeholder="Shares">
+        <input id="pPrice"type="number"placeholder="Buy Price">
         <button style="border-radius: 5px; background-color: #94a3b8; color:#000;" onclick="addPortfolioStock()">Add / Merge</button>
-
     </div>
-
 </div>
 
 <!-- ANALYZER -->
 <div id="analyzer" class="tab">
-
     <div class="card">
-        <h2>Stock Analyzer</h2>
-
+        <h3>Stock Analyzer</h3>
         <input id="aSymbol" placeholder="TSLA">
         <button onclick="analyzeStock()">Analyze</button>
-
         <div id="analysis"></div>
     </div>
-
 </div>
+
 <!-- FULLSCREEN CHART MODAL -->
-<div id="chartModal"
-     style="display:none;"
-     onclick="closeChartModal(event)">
-
+<div id="chartModal"style="display:none;"onclick="closeChartModal(event)">
     <div id="chartModalContent">
-
-        <button id="closeChartBtn"
-                onclick="closeChartModal(event)">
-            ✕
-        </button>
-
-        <h2 id="selectedStockModal"></h2>
-
-        <div id="mainChartModal"
-             style="flex:1;">
-        </div>
-
+        <button id="closeChartBtn"onclick="closeChartModal(event)">❌</button>
+        <h3 id="selectedStockModal"></h3>
+        <div id="mainChartModal"style="flex:1;"></div>
     </div>
-
 </div>
 
-
-  <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -405,26 +182,25 @@ td, th {
     window.db = db;
     window.provider = provider;
 
-    // --- THE LOGGED IN LOGIC ---
-   // --- THE AUTH STATE LOGIC ---
-onAuthStateChanged(auth, (user) => {
-    const nameEl = document.getElementById("user-display-name");
-    const authBtn = document.getElementById("authButton");
+    // --- THE AUTH STATE LOGIC ---
+    onAuthStateChanged(auth, (user) => {
+        const nameEl = document.getElementById("user-display-name");
+        const authBtn = document.getElementById("authButton");
 
-    if (user) {
-        // 1. Update Name
-        if (nameEl) nameEl.innerText = user.displayName || user.email;
+        if (user) {
+            // 1. Update Name
+            if (nameEl) nameEl.innerText = user.displayName || user.email;
 
-        // 2. Change Button to Logout
-        if (authBtn) {
-            authBtn.innerText = "🚪 Logout";
-            authBtn.style.background = "#334155"; // Darker color for logout
-            authBtn.onclick = () => {
-                auth.signOut().then(() => {
-                    location.reload(); // Refresh to clear data on logout
-                });
-            };
-        }
+            // 2. Change Button to Logout
+            if (authBtn) {
+                authBtn.innerText = "🚪 Logout";
+                authBtn.style.background = "#334155"; // Darker color for logout
+                authBtn.onclick = () => {
+                    auth.signOut().then(() => {
+                        location.reload(); // Refresh to clear data on logout
+                    });
+                };
+            }
 
         // 3. Load Data
         if (window.loadUserData) window.loadUserData(user.uid);
@@ -438,7 +214,7 @@ onAuthStateChanged(auth, (user) => {
             authBtn.onclick = window.login; // Point back to the login function
         }
     }
-});
+    });
 
     // Re-bind the login function so the button works
     window.login = async () => {
@@ -452,8 +228,6 @@ onAuthStateChanged(auth, (user) => {
 
 <script>
 
-
-
 const API_KEY = "d7ul6g9r01qnv95o1750d7ul6g9r01qnv95o175g";
 
 let watchlist = [];
@@ -461,10 +235,7 @@ let portfolio = [];
 let alerts = [];
 let hasInitializedChart = false;
 let selectedStock = "";
-let currentUser = {
-    name: "Trader One",
-    email: "trader1@example.com"
-};
+let currentUser = {name: "Trader One",email: "trader1@example.com"};
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -472,24 +243,12 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 /* ---------------- TABS ---------------- */
-function showTab(tab){
-    document.querySelectorAll(".tab")
-    .forEach(t=>t.style.display="none");
-    document.getElementById(tab).style.display="block";
-}
-function getConfidence(score){
-    return Math.max(0, Math.min(100, score || 0));
-}
+function showTab(tab){    document.querySelectorAll(".tab")    .forEach(t=>t.style.display="none");    document.getElementById(tab).style.display="block";}
+function getConfidence(score){    return Math.max(0, Math.min(100, score || 0));}
 
-function scoreColor(score){
-    if(score >= 75) return "#10b981";
-    if(score >= 50) return "#f59e0b";
-    return "#ef4444";
-}
+function scoreColor(score){    if(score >= 75) return "#10b981";    if(score >= 50) return "#f59e0b";  return "#ef4444";}
 
-function getSignalReason(s){
-    return `Trend: ${s.trendScore || 0}, Vol: ${s.volatilityScore || 0}, Strength: ${s.strengthScore || 0}`;
-}
+function getSignalReason(s){return `Trend: ${s.trendScore || 0}, Vol: ${s.volatilityScore || 0}, Strength: ${s.strengthScore || 0}`;}
 /* ---------------- API ---------------- */
 async function getStock(symbol){
     try{
@@ -513,13 +272,7 @@ function addToWatchlistFromInput(){
     renderWatchlist();
     saveUserData();
 }
-
-function removeWatch(i){
-    watchlist.splice(i,1);
-    renderWatchlist();
-    saveUserData();
-}
-
+function removeWatch(i){watchlist.splice(i,1);renderWatchlist();saveUserData();}
 async function updateWatchlist(){
 
     for(let s of watchlist){
@@ -552,14 +305,7 @@ function getTrendScore(dp){
 
     return Math.round(score);
 }
-function getVolatilityScore(dp){
-
-    let vol = Math.abs(dp) * 10;
-
-    if(vol > 100) vol = 100;
-
-    return Math.round(vol);
-}
+function getVolatilityScore(dp){ let vol = Math.abs(dp) * 10;if(vol > 100) vol = 100;return Math.round(vol);}
 function getStrengthScore(dp){
 
     let trend = getTrendScore(dp);
@@ -598,7 +344,6 @@ function updatePortfolioSummary(){
     document.getElementById("totalReturn").innerText =
         pct.toFixed(2);
 }
-
 function renderWatchlist(){
 
     const el = document.getElementById("watchlist");
@@ -666,19 +411,8 @@ function renderWatchlist(){
 
 `).join("");
 }
-
-function getAIlabel(score){
-
-    if(score >= 75) return "🔥 High Conviction Buy";
-    if(score >= 50) return "🟡 Speculative";
-    return "🔴 Avoid";
-}
-function getTopWatchlist(){
-
-    return [...watchlist]
-        .sort((a,b)=>b.strengthScore - a.strengthScore)
-        .slice(0,3);
-}
+function getAIlabel(score){ if(score >= 75) return "🔥 High Conviction Buy"; if(score >= 50) return "🟡 Speculative"; return "🔴 Avoid";}
+function getTopWatchlist(){ return [...watchlist] .sort((a,b)=>b.strengthScore - a.strengthScore) .slice(0,3);}
 let glossaryOpen = false;
 
 function toggleGlossary(){
@@ -759,20 +493,7 @@ async function loadUserData(uid) {
     renderWatchlist();
     masterUpdate();
 }
-async function saveUserData(){
-
-    const user = auth.currentUser;
-
-    if(!user) return;
-
-    await setDoc(
-        doc(db, "users", user.uid),
-        {
-            portfolio,
-            watchlist
-        }
-    );
-}
+async function saveUserData(){ const user = auth.currentUser;if(!user) return; await setDoc(doc(db, "users", user.uid), { portfolio, watchlist});}
 
 /* ---------------- PORTFOLIO ---------------- */
 async function addPortfolioStock(){
@@ -824,8 +545,6 @@ async function updatePortfolio(){
     }
 }
 
-
-
 function renderPortfolio(){
 
     document.getElementById("portfolioCards").innerHTML =
@@ -834,7 +553,7 @@ function renderPortfolio(){
         <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}"
             onclick="selectStock('${p.symbol}')">
 
-            <h2>${p.symbol}</h2>
+            <h3>${p.symbol}</h3>
 
             <p>Shares: ${p.shares}</p>
 
@@ -865,15 +584,7 @@ function renderPortfolio(){
         selectStock(portfolio[0].symbol);
     }
 }
-function removePortfolio(symbol){
-
-    portfolio =
-        portfolio.filter(p => p.symbol !== symbol);
-
-    renderPortfolio();
-
-    saveUserData();
-}
+function removePortfolio(symbol){ portfolio = portfolio.filter(p => p.symbol !== symbol);renderPortfolio();saveUserData();}
 function openChartModal(symbol){
 
     const modal = document.getElementById("chartModal");
@@ -961,7 +672,7 @@ async function analyzeStock(){
         : "🟡 HOLD";
 
     document.getElementById("analysis").innerHTML = `
-        <h2>${s}</h2>
+        <h3>${s}</h3>
         <h1>${rec}</h1>
 
         <p>
