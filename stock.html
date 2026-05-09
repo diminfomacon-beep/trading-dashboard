@@ -39,7 +39,7 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
 <body>
 
-<header>📈 AlphaSync</header>
+<header>🔣AlphaSync</header>
 
 <div id="user-status" style="background: #1e293b; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155;">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -50,9 +50,9 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 </div>
 
 <div class="mobile-nav">
-    <button onclick="showTab('dashboard')">📊</button>
-    <button onclick="showTab('portfolio')">💼</button>
-    <button onclick="showTab('analyzer')">🧠</button>
+    <button onclick="showTab('dashboard')">📊Dashboard</button>
+    <button onclick="showTab('portfolio')">📚Portfolio</button>
+    <button onclick="showTab('analyzer')">💹Analyze</button>
 </div>
 
 <div id="dashboard" class="tab">
@@ -83,12 +83,12 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
 <div id="portfolio" class="tab">
     <header style="margin-bottom: 10px;">
-        <h2 style="margin: 0;">💼 My Portfolio</h2>
-        <div class="card" style="display: flex; gap: 20px; margin-top: 10px; padding: 15px; flex-wrap: wrap; justify-content: space-around;">
+        <h4 style="margin: 0; ">📂My Portfolio</h4>
+        <div class="card" style="display: flex; gap: 20px; margin-top: 10px; padding: 15px; flex-wrap: wrap; justify-content: space-around; font-size: 14px;">
             <span>💰 Invested: <strong id="totalInvested">0</strong></span>
-            <span>📊 Value: <strong id="totalValue">0</strong></span>
-            <span class="green">📈 P/L: <strong id="totalPL">0</strong></span>
-            <span class="green">📈 Return: <strong id="totalReturn">0</strong>%</span>
+            <span>💵 Value: <strong id="totalValue">0</strong></span>
+            <span class="green">📈📉 P/L: <strong id="totalPL">0</strong></span>
+            <span class="green">🤑Return: <strong id="totalReturn">0</strong>%</span>
         </div>
     </header>
 
@@ -146,7 +146,7 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
         if (user) {
             nameEl.innerText = user.displayName || user.email;
-            authBtn.innerText = "🚪 Logout";
+            authBtn.innerText = "🛅 Logout";
             authBtn.style.background = "#334155";
             authBtn.onclick = () => auth.signOut().then(() => location.reload());
             
