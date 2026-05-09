@@ -269,11 +269,15 @@ function removeWatch(index){
     renderWatchlist();
     saveUserData();
 }
-function removePortfolio(symbol){ 
-    window.portfolio = window.portfolio.filter(p => p.symbol !== symbol);
-    masterUpdate();
-    saveUserData();
+function removePortfolio(symbol) { 
+    if (confirm(`Remove ${symbol} from portfolio?`)) {
+        window.portfolio = window.portfolio.filter(p => p.symbol !== symbol);
+        renderPortfolio(); // Refresh cards immediately
+        updatePortfolioSummary(); // Refresh the numbers at the top
+        saveUserData(); // Sync with Firebase
+    }
 }
+
 
 function renderWatchlist(){
     const el = document.getElementById("watchlist");
@@ -356,8 +360,12 @@ function selectStock(symbol) {
 function renderPortfolio() {
     const container = document.getElementById("portfolioCards");
     container.innerHTML = window.portfolio.map(p => `
-        <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}" onclick="selectStock('${p.symbol}')">
-            <div style="display:flex; justify-content:space-between;">
+        <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}" onclick="selectStock('${p.symbol}')" style="position: relative;">
+            <button onclick="event.stopPropagation(); removePortfolio('${p.symbol}')" 
+                    style="position: absolute; top: 5px; right: 5px; background: none; border: none; color: #ef4444; font-size: 16px; padding: 0; cursor: pointer;">
+                ✕
+            </button>
+            <div style="display:flex; justify-content:space-between; margin-right: 20px;">
                 <strong>${p.symbol}</strong>
                 <span class="${p.pl >= 0 ? 'green' : 'red'}">$${p.pl.toFixed(2)}</span>
             </div>
@@ -365,6 +373,7 @@ function renderPortfolio() {
         </div>
     `).join("");
 }
+
 
 /* --- MASTER LOOP --- */
 async function masterUpdate() {
