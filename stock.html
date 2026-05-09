@@ -34,6 +34,28 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
 .green { color: #10b981; }
 .red { color: #ef4444; }
+.tab-btn{
+    flex:1;
+    padding:15px;
+    font-size:20px;
+    background:none;
+    border:none;
+    color:#94a3b8;
+    transition:0.2s;
+}
+
+.tab-btn:hover{
+    background:#1f2937;
+    color:white;
+}
+
+.tab-btn.active{
+    background:#2563eb;
+    color:white;
+    font-weight:bold;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(37,99,235,0.6);
+}
 </style>
 </head>
 
@@ -50,9 +72,9 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 </div>
 
 <div class="mobile-nav">
-    <button style="font-size: 0.9em;" onclick="showTab('dashboard')">📊Dashboard</button>
-    <button style="font-size: 0.9em;" onclick="showTab('portfolio')">📚Portfolio</button>
-    <button style="font-size: 0.9em;" onclick="showTab('analyzer')">💹Analyze</button>
+    <button style="font-size: 0.9em;" class="tab-btn active" data-tab="dashboard" onclick="showTab('dashboard', this)">📊Dashboard</button>
+    <button style="font-size: 0.9em;" class="tab-btn" data-tab="portfolio" onclick="showTab('portfolio', this)">📚Portfolio</button>
+    <button style="font-size: 0.9em;" class="tab-btn" data-tab="analyzer" onclick="showTab('analyzer', this)">💹Analyze</button>
 </div>
 
 <div id="dashboard" class="tab">
@@ -173,9 +195,21 @@ window.portfolio = [];
 let selectedStock = "";
 
 /* --- UTILITIES --- */
-function showTab(tab){
-    document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
-    document.getElementById(tab).style.display="block";
+function showTab(tab, btn){
+
+    document.querySelectorAll(".tab")
+    .forEach(t => t.style.display = "none");
+
+    document.getElementById(tab).style.display = "block";
+
+    // remove active state
+    document.querySelectorAll(".tab-btn")
+    .forEach(b => b.classList.remove("active"));
+
+    // add active state
+    if(btn){
+        btn.classList.add("active");
+    }
 }
 
 async function getStock(symbol){
@@ -360,6 +394,7 @@ async function masterUpdate() {
     document.getElementById("totalReturn").innerText = inv > 0 ? ((val - inv) / inv * 100).toFixed(2) : "0";
 }
 
+document.querySelector('.tab-btn').classList.add("active");
 showTab("dashboard");
 setInterval(masterUpdate, 30000); // Auto update every 30s
 </script>
