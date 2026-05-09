@@ -41,8 +41,8 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 .hold { background: #78350f; color: #f59e0b; }
 #glossary p {padding: 8px 0;border-bottom: 1px solid #334155;font-size: 14px;}
 /* --- MODAL --- */
-#chartModal {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.95);z-index: 99999;display: flex;align-items: center;justify-content: center;}
-#chartModalContent {width: 100%;height: 100%;background: #0f172a;padding: 10px;position: relative;display: flex;flex-direction: column;}
+#chartModal {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.7);z-index: 99999;display: none;align-items: center;justify-content: center;}
+#chartModalContent {width: 80%;height: 70%;background: #1e293b;padding: 20px;position: relative;box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);border: 1px solid #334155;}
 #mainChartModal {flex: 1;}
 #closeChartBtn {position: absolute;top: 15px;right: 15px;background: #ef4444;border: none;color: white;font-size: 18px;width: 44px; /* Slightly larger for easier tapping */height: 44px;border-radius: 50%;cursor: pointer;z-index: 10;}
 </style>
@@ -111,30 +111,38 @@ td, th {border: 1px solid #334155;padding: 10px;font-size: 14px;}
 
 </div>
 
-<!-- PORTFOLIO -->
 <div id="portfolio" class="tab">
-    <!-- SUMMARY -->
     <div class="card">
         <h3>📊 Portfolio Summary</h3>
-        <p>💰 Invested: $<span id="totalInvested">0</span></p>
-        <p>📊 Current Value: $<span id="totalValue">0</span></p>
-        <p class="green">📈 P/L: $<span id="totalPL">0</span></p>
-        <p class="green">📈 Return: <span id="totalReturn">0</span>%</p>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <p>💰 Invested: $<span id="totalInvested">0</span></p>
+            <p>📊 Current Value: $<span id="totalValue">0</span></p>
+            <p class="green">📈 P/L: $<span id="totalPL">0</span></p>
+            <p class="green">📈 Return: <span id="totalReturn">0</span>%</p>
+        </div>
     </div>
-    <!-- PORTFOLIO LIST -->
-    <div class="card">
-        <h3>💼 My Portfolio</h3>
-        <p>Tap a stock to open fullscreen chart</p>
-        <h3 id="selectedStock" style="display:none;"></h3>
-        <div id="portfolioCards"></div>
-    </div>
-    <!-- ADD POSITION -->
-    <div class="card">
-        <h3>➕ Add Position</h3>
-        <input id="pSymbol" placeholder="AAPL">
-        <input id="pShares"type="number"placeholder="Shares">
-        <input id="pPrice"type="number"placeholder="Buy Price">
-        <button style="border-radius: 5px; background-color: #94a3b8; color:#000;" onclick="addPortfolioStock()">Add / Merge</button>
+
+    <div class="portfolio-layout" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: start;">
+        
+        <div class="left-col">
+            <div class="card">
+                <h3>💼 My Portfolio</h3>
+                <div id="portfolioCards"></div>
+            </div>
+
+            <div class="card">
+                <h3>➕ Add Position</h3>
+                <input id="pSymbol" placeholder="AAPL" style="width: 80px;">
+                <input id="pShares" type="number" placeholder="Shares" style="width: 80px;">
+                <input id="pPrice" type="number" placeholder="Price" style="width: 80px;">
+                <button style="border-radius: 5px; background-color: #3b82f6; color:#fff; margin-top: 10px;" onclick="addPortfolioStock()">Add / Merge</button>
+            </div>
+        </div>
+
+        <div class="right-col card" style="position: sticky; top: 80px; height: 600px;">
+            <h3>📈 Live Chart: <span id="chartSymbol" style="color: #60a5fa;">Select a Stock</span></h3>
+            <div id="portfolioInlineChart" style="height: 520px; background: #0f172a; border-radius: 8px;"></div>
+        </div>
     </div>
 </div>
 
@@ -545,44 +553,75 @@ async function updatePortfolio(){
     }
 }
 
-function renderPortfolio(){
+// 1. SELECT STOCK (THE INLINE VERSION)
+function selectStock(symbol) {
+    selectedStock = symbol;
+    
+    // Update the label above the chart
+    const chartLabel = document.getElementById("chartSymbol");
+    if (chartLabel) chartLabel.innerText = symbol;
 
-    document.getElementById("portfolioCards").innerHTML =
-    portfolio.map(p=>`
-
-        <div class="stock-card ${p.symbol === selectedStock ? 'active' : ''}"
-            onclick="selectStock('${p.symbol}')">
-
-            <h3>${p.symbol}</h3>
-
-            <p>Shares: ${p.shares}</p>
-
-            <p>Avg: $${p.buyPrice.toFixed(2)}</p>
-
-            <p>Current: $${p.current.toFixed(2)}</p>
-
-            <p class="${p.pl>=0?'green':'red'}">
-                P/L: $${p.pl.toFixed(2)}
-            </p>
-
-            <button onclick="
-                event.stopPropagation();
-                removePortfolio('${p.symbol}')
-            ">
-                ❌ Remove
-            </button>
-
-        </div>
-
-    `).join("");
-
-    // ONLY AUTO-SELECT ON FIRST LOAD
-    if(portfolio.length > 0 && !hasInitializedChart){
-
-        hasInitializedChart = true;
-
-        selectStock(portfolio[0].symbol);
+    // Clear and Redraw the TradingView widget in the inline container
+    const chartContainer = document.getElementById("portfolioInlineChart");
+    if (chartContainer) {
+        chartContainer.innerHTML = "";
+        
+        new TradingView.widget({
+            "container_id": "portfolioInlineChart",
+            "symbol": `NASDAQ:${symbol}`,
+            "interval": "D",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "autosize": true,
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "save_image": false
+        });
     }
+
+    // Refresh cards to apply the 'active' blue border CSS
+    renderPortfolio();
+}
+
+// 2. RENDER CARDS
+function renderPortfolio() {
+    const container = document.getElementById("portfolioCards");
+    if (!container) return;
+
+    if (portfolio.length === 0) {
+        container.innerHTML = "<p style='color: #64748b; padding: 10px;'>No positions yet.</p>";
+        return;
+    }
+
+    container.innerHTML = portfolio.map(p => {
+        // Check if this specific card is the one currently selected
+        const isActive = p.symbol === selectedStock;
+        const statusClass = p.pl >= 0 ? 'green' : 'red';
+        
+        return `
+        <div class="stock-card ${isActive ? 'active' : ''}" 
+             onclick="selectStock('${p.symbol}')"
+             style="cursor: pointer; padding: 15px; border-radius: 10px; margin-bottom: 10px; 
+                    background: ${isActive ? '#1e293b' : '#111827'}; 
+                    border: 1px solid ${isActive ? '#3b82f6' : '#334155'};
+                    transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 1.1em;">${p.symbol}</strong>
+                <span class="${statusClass}" style="font-weight: bold;">
+                    ${p.pl >= 0 ? '+' : ''}$${p.pl.toFixed(2)}
+                </span>
+            </div>
+            <div style="font-size: 0.85em; color: #94a3b8; margin-top: 5px;">
+                ${p.shares} shares @ $${p.buyPrice.toFixed(2)}
+            </div>
+            <button onclick="event.stopPropagation(); removePortfolio('${p.symbol}')" 
+                    style="background: transparent; color: #ef4444; border: none; font-size: 11px; 
+                           padding: 8px 0 0 0; cursor: pointer; text-decoration: underline;">
+                Remove Position
+            </button>
+        </div>
+    `}).join("");
 }
 function removePortfolio(symbol){ portfolio = portfolio.filter(p => p.symbol !== symbol);renderPortfolio();saveUserData();}
 function openChartModal(symbol){
@@ -622,15 +661,7 @@ function closeChartModal(e){
     }
 }
 
-function selectStock(symbol){
 
-    selectedStock = symbol;
-
-    document.getElementById("selectedStock").innerText = symbol;
-
-    // open fullscreen chart modal instead of inline chart
-    openChartModal(symbol);
-}
 /* ---------------- ALERTS ---------------- */
 function generateAlerts(){
 
