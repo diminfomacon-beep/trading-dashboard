@@ -117,6 +117,11 @@ input {
     box-sizing: border-box;
 }
 
+input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
 button {
     padding: 12px 16px;
     border: none;
@@ -269,9 +274,9 @@ td, th {
 </div>
 
 <div id="learn" class="tab" style="padding-top: 0;">
-    <div style="position: sticky; top: 0; background: #0f172a; padding: 15px 0; z-index: 100; border-bottom: 1px solid #334155;">
-        <input id="glossarySearch" placeholder="🔍 Search terms, tips, or broker rules..." oninput="filterGlossary()" style="margin: 0;">
-    </div>
+   <div style="position: sticky; top: 0; background: var(--bg-main); padding: 15px 0; z-index: 100; border-bottom: 1px solid var(--border);">
+    <input id="glossarySearch" placeholder="🔍 Search terms..." oninput="filterGlossary()" style="margin: 0;">
+</div>
 
     <div class="card">
         <div onclick="toggleSection('tipsContent')" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
@@ -409,13 +414,14 @@ function renderTopStocks() {
         return;
     }
 
+    // Update this line inside your renderTopStocks function
     topStocksContainer.innerHTML = topPicks.map(s => `
-        <div style="padding:10px; margin-bottom:8px; background:#111827; border-radius:8px; border-left: 4px solid ${scoreColor(s.strengthScore)};">
+        <div style="padding:10px; margin-bottom:8px; background: var(--bg-header); border: 1px solid var(--border); border-radius:8px; border-left: 4px solid ${scoreColor(s.strengthScore)};">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong>${s.symbol}</strong>
+                <strong style="color: var(--text-main);">${s.symbol}</strong>
                 <span style="color:${scoreColor(s.strengthScore)}; font-weight:bold;">${s.strengthScore}% Strength</span>
             </div>
-            <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
+            <div style="font-size:12px; color: var(--text-muted); margin-top:4px;">
                 Signal: ${s.suggestion} | Trend: ${s.trendScore}%
             </div>
         </div>
