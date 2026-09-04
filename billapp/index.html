@@ -267,9 +267,16 @@
       saveData();
     }
 
+    // Delete Bill with Confirmation Prompt
     function deleteBill(id) {
-      bills = bills.filter(b => b.id !== id);
-      saveData();
+      const billToDelete = bills.find(b => b.id === id);
+      const billName = billToDelete ? billToDelete.name : 'this bill';
+      
+      const confirmed = confirm(`Are you sure you want to delete "${billName}"?`);
+      if (confirmed) {
+        bills = bills.filter(b => b.id !== id);
+        saveData();
+      }
     }
 
     function computeNextCycle(bill) {
@@ -328,7 +335,6 @@
       return due >= today && due <= target;
     }
 
-    // Helper: Check if a date is within 30 days from today
     function isWithin30Days(dueDateStr) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -343,19 +349,16 @@
       tbody.innerHTML = '';
 
       let displayedBills = bills.filter(b => {
-        // 1. Check non-monthly 30-day filter threshold
         if (b.frequency !== 'monthly' && !b.paid && !showDistantNonMonthly) {
           if (!isWithin30Days(b.dueDate)) {
             return false;
           }
         }
 
-        // 2. Check target date cutoff filter
         if (showAll || !targetDate) return true;
         return isWithinTargetRange(b.dueDate) || b.paid;
       });
 
-      // Sort: Unpaid first, then by due date
       displayedBills.sort((a, b) => {
         if (a.paid !== b.paid) {
           return a.paid ? 1 : -1;
