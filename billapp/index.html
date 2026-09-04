@@ -65,9 +65,9 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .btn-secondary {
-      background: #475569;
-    }
+    .btn-secondary { background: #475569; }
+    .btn-danger { background: #ef4444; }
+    
     .header-actions {
       display: flex;
       justify-content: space-between;
@@ -135,82 +135,159 @@
       padding: 4px;
       font-size: 0.8rem;
     }
+    .hidden { display: none !important; }
+    .auth-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .auth-error {
+      color: #ef4444;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+    .user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Collapsible Add Bill Card -->
-  <div class="card">
-    <div class="collapsible-header" id="form-toggle">
-      <h2>Add New Bill</h2>
-      <span id="toggle-icon">➕</span>
-    </div>
-    <div class="collapsible-content" id="form-content">
-      <form id="bill-form" class="form-group">
-        <input type="text" id="name" placeholder="Bill Name (e.g., Electric)" required>
-        <input type="date" id="dueDate" required>
-        <input type="number" id="amount" step="0.01" placeholder="Amount ($)" required>
-        <select id="frequency">
-          <option value="monthly">Monthly</option>
-          <option value="quarterly">Quarterly</option>
-          <option value="annually">Annually</option>
-          <option value="one-time">One-time</option>
-        </select>
-        <button type="submit">Add Bill</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Dynamic Target Date & Visibility Settings -->
-  <div class="card date-config">
-    <label for="targetDate"><strong>Highlight & Filter Bills Due By:</strong></label>
-    <input type="date" id="targetDate">
-    <div class="filter-toggle">
-      <div class="filter-item">
-        <input type="checkbox" id="showAllToggle">
-        <label for="showAllToggle">Show all upcoming bills (disable date filter)</label>
+  <!-- Authentication Section -->
+  <div id="auth-card" class="card">
+    <h2>Account Login</h2>
+    <form id="auth-form" class="form-group" style="margin-top: 10px;">
+      <input type="email" id="auth-email" placeholder="Email" required>
+      <input type="password" id="auth-password" placeholder="Password" required>
+      <div class="auth-actions">
+        <button type="button" id="btn-login" style="flex: 1;">Log In</button>
+        <button type="button" id="btn-signup" class="btn-secondary" style="flex: 1;">Sign Up</button>
       </div>
-      <div class="filter-item">
-        <input type="checkbox" id="showDistantNonMonthlyToggle">
-        <label for="showDistantNonMonthlyToggle">Show non-monthly bills due > 30 days away</label>
+      <div id="auth-error" class="auth-error hidden"></div>
+    </form>
+  </div>
+
+  <!-- Main App View (Hidden until authenticated) -->
+  <div id="app-content" class="hidden">
+    
+    <!-- User Status & Logout -->
+    <div class="card user-bar">
+      <span>Logged in as: <strong id="user-email-display"></strong></span>
+      <button id="btn-logout" class="btn-danger" style="padding: 4px 10px; font-size: 0.8rem;">Log Out</button>
+    </div>
+
+    <!-- Collapsible Add Bill Card -->
+    <div class="card">
+      <div class="collapsible-header" id="form-toggle">
+        <h2>Add New Bill</h2>
+        <span id="toggle-icon">➕</span>
+      </div>
+      <div class="collapsible-content" id="form-content">
+        <form id="bill-form" class="form-group">
+          <input type="text" id="name" placeholder="Bill Name (e.g., Electric)" required>
+          <input type="date" id="dueDate" required>
+          <input type="number" id="amount" step="0.01" placeholder="Amount ($)" required>
+          <select id="frequency">
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annually">Annually</option>
+            <option value="one-time">One-time</option>
+          </select>
+          <button type="submit">Add Bill</button>
+        </form>
       </div>
     </div>
-  </div>
 
-  <!-- Bills Display -->
-  <div class="card">
-    <div class="header-actions">
-      <h2>Your Bills</h2>
-      <button class="btn-secondary" onclick="advanceAllPaid()">🔄 Refresh Paid Bills</button>
+    <!-- Dynamic Target Date & Visibility Settings -->
+    <div class="card date-config">
+      <label for="targetDate"><strong>Highlight & Filter Bills Due By:</strong></label>
+      <input type="date" id="targetDate">
+      <div class="filter-toggle">
+        <div class="filter-item">
+          <input type="checkbox" id="showAllToggle">
+          <label for="showAllToggle">Show all upcoming bills (disable date filter)</label>
+        </div>
+        <div class="filter-item">
+          <input type="checkbox" id="showDistantNonMonthlyToggle">
+          <label for="showDistantNonMonthlyToggle">Show non-monthly bills due > 30 days away</label>
+        </div>
+      </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Done</th>
-          <th>Name</th>
-          <th>Due</th>
-          <th>Amount</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="bills-tbody"></tbody>
-    </table>
+
+    <!-- Bills Display -->
+    <div class="card">
+      <div class="header-actions">
+        <h2>Your Bills</h2>
+        <button class="btn-secondary" id="btn-refresh-all">🔄 Refresh Paid Bills</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Done</th>
+            <th>Name</th>
+            <th>Due</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bills-tbody"></tbody>
+      </table>
+    </div>
+
   </div>
 
-  <script>
-    let bills = JSON.parse(localStorage.getItem('bills')) || [];
+  <!-- Firebase Modular SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      deleteDoc, 
+      doc, 
+      updateDoc, 
+      onSnapshot,
+      query,
+      where 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Your Configured Firebase Credentials
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYRv9V6k029iDyUkzfbtfm7JPrYVTrx-s",
+      authDomain: "billapp-e4098.firebaseapp.com",
+      projectId: "billapp-e4098",
+      storageBucket: "billapp-e4098.firebasestorage.app",
+      messagingSenderId: "446387955237",
+      appId: "1:446387955237:web:96b3b36fa41cd7684c01cc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let bills = [];
+    let unsubscribeSnapshot = null;
+    let editingId = null;
+
     let targetDate = localStorage.getItem('targetDate') || '';
     let showAll = JSON.parse(localStorage.getItem('showAll')) || false;
     let showDistantNonMonthly = JSON.parse(localStorage.getItem('showDistantNonMonthly')) || false;
-    let editingId = null;
 
-    if (targetDate) {
-      document.getElementById('targetDate').value = targetDate;
-    }
+    if (targetDate) document.getElementById('targetDate').value = targetDate;
     document.getElementById('showAllToggle').checked = showAll;
     document.getElementById('showDistantNonMonthlyToggle').checked = showDistantNonMonthly;
 
-    // Collapsible Logic
+    // UI Toggle Collapsible Form
     const formToggle = document.getElementById('form-toggle');
     const formContent = document.getElementById('form-content');
     const toggleIcon = document.getElementById('toggle-icon');
@@ -220,68 +297,103 @@
       toggleIcon.textContent = formContent.classList.contains('active') ? '➖' : '➕';
     });
 
-    function saveData() {
-      localStorage.setItem('bills', JSON.stringify(bills));
-      localStorage.setItem('targetDate', targetDate);
-      localStorage.setItem('showAll', JSON.stringify(showAll));
-      localStorage.setItem('showDistantNonMonthly', JSON.stringify(showDistantNonMonthly));
-      render();
+    // Authentication Handlers
+    const authCard = document.getElementById('auth-card');
+    const appContent = document.getElementById('app-content');
+    const authError = document.getElementById('auth-error');
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      authError.classList.add('hidden');
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        authError.textContent = err.message;
+        authError.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('btn-signup').addEventListener('click', async () => {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      authError.classList.add('hidden');
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        authError.textContent = err.message;
+        authError.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      signOut(auth);
+    });
+
+    // Auth State Listener (Persistent Session Management)
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        document.getElementById('user-email-display').textContent = user.email;
+        authCard.classList.add('hidden');
+        appContent.classList.remove('hidden');
+        listenToBills();
+      } else {
+        authCard.classList.remove('hidden');
+        appContent.classList.add('hidden');
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
+        bills = [];
+        render();
+      }
+    });
+
+    // Realtime Firestore Listener
+    function listenToBills() {
+      if (!currentUser) return;
+      const q = query(collection(db, "bills"), where("userId", "==", currentUser.uid));
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        bills = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        render();
+      });
     }
 
-    // Add Bill
-    document.getElementById('bill-form').addEventListener('submit', (e) => {
+    // Bill Database Operations
+    document.getElementById('bill-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!currentUser) return;
+
       const newBill = {
-        id: Date.now().toString(),
+        userId: currentUser.uid,
         name: document.getElementById('name').value,
         dueDate: document.getElementById('dueDate').value,
         amount: parseFloat(document.getElementById('amount').value),
         frequency: document.getElementById('frequency').value,
         paid: false
       };
-      bills.push(newBill);
-      saveData();
+
+      await addDoc(collection(db, "bills"), newBill);
       e.target.reset();
-      
       formContent.classList.remove('active');
       toggleIcon.textContent = '➕';
     });
 
-    document.getElementById('targetDate').addEventListener('change', (e) => {
-      targetDate = e.target.value;
-      saveData();
-    });
-
-    document.getElementById('showAllToggle').addEventListener('change', (e) => {
-      showAll = e.target.checked;
-      saveData();
-    });
-
-    document.getElementById('showDistantNonMonthlyToggle').addEventListener('change', (e) => {
-      showDistantNonMonthly = e.target.checked;
-      saveData();
-    });
-
-    function togglePaid(id) {
-      bills = bills.map(b => b.id === id ? { ...b, paid: !b.paid } : b);
-      saveData();
-    }
-
-    // Delete Bill with Confirmation Prompt
-    function deleteBill(id) {
-      const billToDelete = bills.find(b => b.id === id);
-      const billName = billToDelete ? billToDelete.name : 'this bill';
-      
-      const confirmed = confirm(`Are you sure you want to delete "${billName}"?`);
-      if (confirmed) {
-        bills = bills.filter(b => b.id !== id);
-        saveData();
+    window.togglePaid = async (id) => {
+      const bill = bills.find(b => b.id === id);
+      if (bill) {
+        await updateDoc(doc(db, "bills", id), { paid: !bill.paid });
       }
-    }
+    };
+
+    window.deleteBill = async (id) => {
+      const bill = bills.find(b => b.id === id);
+      const name = bill ? bill.name : 'this bill';
+      if (confirm(`Are you sure you want to delete "${name}"?`)) {
+        await deleteDoc(doc(db, "bills", id));
+      }
+    };
 
     function computeNextCycle(bill) {
       if (bill.frequency === 'one-time') return bill;
-
       let [year, month, day] = bill.dueDate.split('-').map(Number);
       let date = new Date(year, month - 1, day);
 
@@ -294,37 +406,61 @@
       const newDay = String(date.getDate()).padStart(2, '0');
 
       return {
-        ...bill,
         dueDate: `${newYear}-${newMonth}-${newDay}`,
         paid: false
       };
     }
 
-    function advanceCycle(id) {
-      bills = bills.map(b => b.id === id ? computeNextCycle(b) : b);
-      saveData();
-    }
+    window.advanceCycle = async (id) => {
+      const bill = bills.find(b => b.id === id);
+      if (bill) {
+        const updated = computeNextCycle(bill);
+        await updateDoc(doc(db, "bills", id), updated);
+      }
+    };
 
-    function advanceAllPaid() {
-      bills = bills.map(b => (b.paid && b.frequency !== 'one-time') ? computeNextCycle(b) : b);
-      saveData();
-    }
+    document.getElementById('btn-refresh-all').addEventListener('click', async () => {
+      for (const b of bills) {
+        if (b.paid && b.frequency !== 'one-time') {
+          const updated = computeNextCycle(b);
+          await updateDoc(doc(db, "bills", b.id), updated);
+        }
+      }
+    });
 
-    function startEdit(id) {
+    window.startEdit = (id) => {
       editingId = id;
       render();
-    }
+    };
 
-    function saveEdit(id) {
+    window.saveEdit = async (id) => {
       const name = document.getElementById(`edit-name-${id}`).value;
       const dueDate = document.getElementById(`edit-dueDate-${id}`).value;
       const amount = parseFloat(document.getElementById(`edit-amount-${id}`).value);
       const frequency = document.getElementById(`edit-freq-${id}`).value;
 
-      bills = bills.map(b => b.id === id ? { ...b, name, dueDate, amount, frequency } : b);
+      await updateDoc(doc(db, "bills", id), { name, dueDate, amount, frequency });
       editingId = null;
-      saveData();
-    }
+    };
+
+    // Filter Controls
+    document.getElementById('targetDate').addEventListener('change', (e) => {
+      targetDate = e.target.value;
+      localStorage.setItem('targetDate', targetDate);
+      render();
+    });
+
+    document.getElementById('showAllToggle').addEventListener('change', (e) => {
+      showAll = e.target.checked;
+      localStorage.setItem('showAll', JSON.stringify(showAll));
+      render();
+    });
+
+    document.getElementById('showDistantNonMonthlyToggle').addEventListener('change', (e) => {
+      showDistantNonMonthly = e.target.checked;
+      localStorage.setItem('showDistantNonMonthly', JSON.stringify(showDistantNonMonthly));
+      render();
+    });
 
     function isWithinTargetRange(dueDateStr) {
       if (!targetDate) return false;
@@ -340,29 +476,24 @@
       today.setHours(0, 0, 0, 0);
       const due = new Date(dueDateStr + 'T00:00:00');
       const diffTime = due - today;
-      const diffDays = diffTime / (1000 * 60 * 60 * 24);
-      return diffDays <= 30;
+      return (diffTime / (1000 * 60 * 60 * 24)) <= 30;
     }
 
+    // Render Function
     function render() {
       const tbody = document.getElementById('bills-tbody');
       tbody.innerHTML = '';
 
       let displayedBills = bills.filter(b => {
         if (b.frequency !== 'monthly' && !b.paid && !showDistantNonMonthly) {
-          if (!isWithin30Days(b.dueDate)) {
-            return false;
-          }
+          if (!isWithin30Days(b.dueDate)) return false;
         }
-
         if (showAll || !targetDate) return true;
         return isWithinTargetRange(b.dueDate) || b.paid;
       });
 
       displayedBills.sort((a, b) => {
-        if (a.paid !== b.paid) {
-          return a.paid ? 1 : -1;
-        }
+        if (a.paid !== b.paid) return a.paid ? 1 : -1;
         return new Date(a.dueDate) - new Date(b.dueDate);
       });
 
@@ -414,8 +545,6 @@
         tbody.appendChild(tr);
       });
     }
-
-    render();
   </script>
 </body>
 </html>
