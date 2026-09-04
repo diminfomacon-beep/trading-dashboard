@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Geometric Facet Gradients -->
+    <linearGradient id="gradTopLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <linearGradient id="gradTopRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#6D28D9" />
+    </linearGradient>
+
+    <linearGradient id="gradBottomRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899" />
+      <stop offset="100%" stop-color="#BE185D" />
+    </linearGradient>
+
+    <linearGradient id="gradBottomLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#0E7490" />
+    </linearGradient>
+
+    <!-- Drop Shadow for Central Letter -->
+    <filter id="letterShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Clip Path for App Squircle Shape -->
+  <clipPath id="squircleClip">
+    <rect x="0" y="0" width="512" height="512" rx="115" />
+  </clipPath>
+
+  <g clip-path="url(#squircleClip)">
+    <!-- Base Background -->
+    <rect x="0" y="0" width="512" height="512" fill="#0F172A" />
+
+    <!-- Abstract Geometric Facets -->
+    <polygon points="0,0 320,0 210,256 0,180" fill="url(#gradTopLeft)" />
+    <polygon points="320,0 512,0 512,300 210,256" fill="url(#gradTopRight)" opacity="0.95" />
+    <polygon points="210,256 512,300 512,512 160,512" fill="url(#gradBottomRight)" />
+    <polygon points="0,180 210,256 160,512 0,512" fill="url(#gradBottomLeft)" opacity="0.9" />
+
+    <!-- Geometric Overlay Triangles -->
+    <polygon points="210,256 320,0 512,180" fill="#FFFFFF" opacity="0.08" />
+    <polygon points="0,180 210,256 80,380" fill="#000000" opacity="0.12" />
+    <polygon points="210,256 512,512 340,512" fill="#FFFFFF" opacity="0.06" />
+
+    <!-- Subtle Center Glow -->
+    <circle cx="256" cy="256" r="160" fill="#FFFFFF" opacity="0.1" />
+
+    <!-- Central Geometric Letter 'B' -->
+    <g filter="url(#letterShadow)">
+      <!-- Main Vertical Stem -->
+      <rect x="160" y="128" width="52" height="256" rx="8" fill="#FFFFFF" />
+      
+      <!-- Upper Loop of B -->
+      <path d="M 200 128 L 290 128 C 335 128 365 152 365 190 C 365 228 335 250 290 250 L 200 250 Z" fill="#FFFFFF" />
+      <path d="M 212 164 L 282 164 C 308 164 328 174 328 190 C 328 206 308 214 282 214 L 212 214 Z" fill="url(#gradTopRight)" />
+
+      <!-- Lower Loop of B -->
+      <path d="M 200 242 L 300 242 C 350 242 380 268 380 310 C 380 352 350 384 300 384 L 200 384 Z" fill="#FFFFFF" />
+      <path d="M 212 278 L 292 278 C 322 278 342 290 342 310 C 342 330 322 348 292 348 L 212 348 Z" fill="url(#gradBottomRight)" />
+    </g>
+  </g>
+</svg>
