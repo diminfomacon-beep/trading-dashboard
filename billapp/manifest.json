@@ -3,19 +3,14 @@
   "name": "Bill Tracker App",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192.png?text=Bills",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "https://via.placeholder.com/512.png?text=Bills",
+      "src": "billicon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#f4f6f8",
-  "theme_color": "#2563eb",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
   "display": "standalone",
   "orientation": "portrait"
 }
