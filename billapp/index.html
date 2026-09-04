@@ -13,7 +13,8 @@
       --text: #222222;
       --border: #e0e0e0;
       --primary: #2563eb;
-      --due-soon: #fef3c7;
+      --due-highlight: #fef08a;
+      --due-highlight-border: #facc15;
       --paid-bg: #f3f4f6;
     }
     body {
@@ -50,14 +51,12 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .payday-config {
+    .date-config {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
       font-size: 0.9rem;
     }
-    .payday-config input { width: 60px; }
-    
     table {
       width: 100%;
       border-collapse: collapse;
@@ -73,19 +72,12 @@
     
     tr.paid {
       background-color: var(--paid-bg);
-      opacity: 0.6;
+      opacity: 0.5;
       text-decoration: line-through;
     }
-    tr.due-soon {
-      background-color: var(--due-soon);
-    }
-    .group-header {
-      background: #e2e8f0;
-      font-weight: bold;
-      padding: 8px;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    tr.target-highlight {
+      background-color: var(--due-highlight);
+      font-weight: 600;
     }
     .action-btn {
       background: transparent;
@@ -100,6 +92,7 @@
       font-size: 0.7rem;
       color: #666;
       display: block;
+      font-weight: normal;
     }
   </style>
 </head>
@@ -109,40 +102,53 @@
   <div class="card">
     <h2>Add New Bill</h2>
     <form id="bill-form" class="form-group">
-      <input type="text" id="name" placeholder="Bill Name (e.g., Netflix)" required>
+      <input type="text" id="name" placeholder="Bill Name (e.g., Internet)" required>
       <input type="date" id="dueDate" required>
       <input type="number" id="amount" step="0.01" placeholder="Amount ($)" required>
       <select id="frequency">
         <option value="monthly">Monthly</option>
-        <option value="quarterly">Quarterly (Every 3 months)</option>
-        <option value="annually">Annually (Every year)</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="annually">Annually</option>
         <option value="one-time">One-time</option>
       </select>
       <button type="submit">Add Bill</button>
     </form>
   </div>
 
-  <!-- Settings -->
-  <div class="card payday-config">
-    <label for="paydayCutoff">Mid-Month Payday Cutoff Day:</label>
-    <input type="number" id="paydayCutoff" min="1" max="31" value="15">
+  <!-- Dynamic Payday/Target Highlight Settings -->
+  <div class="card date-config">
+    <label for="targetDate"><strong>Highlight Bills Due By:</strong></label>
+    <input type="date" id="targetDate">
   </div>
 
   <!-- Bills Display -->
   <div class="card">
     <h2>Your Bills</h2>
-    <div id="tables-container"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Done</th>
+          <th>Name</th>
+          <th>Due Date</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="bills-tbody"></tbody>
+    </table>
   </div>
 
   <script>
     let bills = JSON.parse(localStorage.getItem('bills')) || [];
-    let paydayCutoff = parseInt(localStorage.getItem('paydayCutoff')) || 15;
+    let targetDate = localStorage.getItem('targetDate') || '';
 
-    document.getElementById('paydayCutoff').value = paydayCutoff;
+    if (targetDate) {
+      document.getElementById('targetDate').value = targetDate;
+    }
 
     function saveData() {
       localStorage.setItem('bills', JSON.stringify(bills));
-      localStorage.setItem('paydayCutoff', paydayCutoff);
+      localStorage.setItem('targetDate', targetDate);
       render();
     }
 
@@ -162,8 +168,9 @@
       e.target.reset();
     });
 
-    document.getElementById('paydayCutoff').addEventListener('change', (e) => {
-      paydayCutoff = parseInt(e.target.value) || 15;
+    // Update Target Date
+    document.getElementById('targetDate').addEventListener('change', (e) => {
+      targetDate = e.target.value;
       saveData();
     });
 
@@ -177,7 +184,6 @@
       saveData();
     }
 
-    // Advance to next recurring date
     function advanceCycle(id) {
       bills = bills.map(b => {
         if (b.id !== id) return b;
@@ -206,79 +212,51 @@
       saveData();
     }
 
-    function isDueSoon(dateString) {
+    // Check if bill falls between today and target date
+    function isWithinTargetRange(dueDateStr) {
+      if (!targetDate) return false;
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const due = new Date(dateString + 'T00:00:00');
-      const diffDays = (due - today) / (1000 * 60 * 60 * 24);
-      return diffDays >= 0 && diffDays <= 3;
+
+      const target = new Date(targetDate + 'T23:59:59');
+      const due = new Date(dueDateStr + 'T00:00:00');
+
+      return due >= today && due <= target;
     }
 
     function render() {
-      const container = document.getElementById('tables-container');
-      container.innerHTML = '';
+      const tbody = document.getElementById('bills-tbody');
+      tbody.innerHTML = '';
 
-      const group1 = [];
-      const group2 = [];
+      // Sort by Due Date
+      bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-      bills.forEach(bill => {
-        const day = parseInt(bill.dueDate.split('-')[2]);
-        if (day < paydayCutoff) {
-          group1.push(bill);
-        } else {
-          group2.push(bill);
-        }
+      bills.forEach(b => {
+        const isHighlighted = !b.paid && isWithinTargetRange(b.dueDate);
+        const highlightClass = isHighlighted ? 'target-highlight' : '';
+        const paidClass = b.paid ? 'paid' : '';
+        const cycleBtn = b.frequency !== 'one-time' 
+          ? `<button class="action-btn cycle-btn" title="Advance to Next Cycle" onclick="advanceCycle('${b.id}')">🔄</button>` 
+          : '';
+
+        const tr = document.createElement('tr');
+        tr.className = `${paidClass} ${highlightClass}`.trim();
+        tr.innerHTML = `
+          <td><input type="checkbox" ${b.paid ? 'checked' : ''} onclick="togglePaid('${b.id}')"></td>
+          <td>
+            ${b.name}
+            <span class="freq-badge">${b.frequency}</span>
+          </td>
+          <td>${b.dueDate}</td>
+          <td>$${b.amount.toFixed(2)}</td>
+          <td>
+            ${cycleBtn}
+            <button class="action-btn delete-btn" onclick="deleteBill('${b.id}')">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
-
-      renderTableGroup(container, `Group 1: Days 1 to ${paydayCutoff - 1}`, group1);
-      renderTableGroup(container, `Group 2: Days ${paydayCutoff} to End of Month`, group2);
-    }
-
-    function renderTableGroup(container, title, billGroup) {
-      if (billGroup.length === 0) return;
-
-      const groupDiv = document.createElement('div');
-      groupDiv.innerHTML = `<div class="group-header">${title}</div>`;
-
-      const table = document.createElement('table');
-      table.innerHTML = `
-        <thead>
-          <tr>
-            <th>Done</th>
-            <th>Name</th>
-            <th>Due</th>
-            <th>Amount</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${billGroup.map(b => {
-            const dueSoonClass = (!b.paid && isDueSoon(b.dueDate)) ? 'due-soon' : '';
-            const paidClass = b.paid ? 'paid' : '';
-            const cycleBtn = b.frequency !== 'one-time' 
-              ? `<button class="action-btn cycle-btn" title="Advance to Next Cycle" onclick="advanceCycle('${b.id}')">🔄</button>` 
-              : '';
-
-            return `
-              <tr class="${paidClass} ${dueSoonClass}">
-                <td><input type="checkbox" ${b.paid ? 'checked' : ''} onclick="togglePaid('${b.id}')"></td>
-                <td>
-                  ${b.name}
-                  <span class="freq-badge">${b.frequency}</span>
-                </td>
-                <td>${b.dueDate.slice(5)}</td>
-                <td>$${b.amount.toFixed(2)}</td>
-                <td>
-                  ${cycleBtn}
-                  <button class="action-btn delete-btn" onclick="deleteBill('${b.id}')">✕</button>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      `;
-      groupDiv.appendChild(table);
-      container.appendChild(groupDiv);
     }
 
     render();
