@@ -67,12 +67,17 @@
     }
     .btn-secondary { background: #475569; }
     .btn-danger { background: #ef4444; }
+    .btn-success { background: #059669; }
     
     .header-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
+    }
+    .export-bar {
+      display: flex;
+      gap: 8px;
     }
     .date-config {
       display: flex;
@@ -92,6 +97,61 @@
       align-items: center;
       gap: 6px;
     }
+    
+    /* Search Bar Styling */
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 32px 8px 30px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      color: #64748b;
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+    .clear-search-btn {
+      position: absolute;
+      right: 8px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .clear-search-btn:hover {
+      color: #334155;
+    }
+
+    /* Summary Card Styling */
+    .summary-card {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .summary-title {
+      font-size: 0.85rem;
+      color: #1e40af;
+      font-weight: 600;
+    }
+    .summary-amount {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1e3a8a;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -151,6 +211,29 @@
       align-items: center;
       font-size: 0.85rem;
     }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .card, .summary-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        margin-bottom: 8px;
+      }
+      .no-print, #auth-card, .user-bar, .search-wrapper, .header-actions button, .action-btn {
+        display: none !important;
+      }
+      th:first-child, td:first-child,
+      th:last-child, td:last-child {
+        display: none !important;
+      }
+      tr.paid {
+        opacity: 0.8;
+      }
+    }
   </style>
 </head>
 <body>
@@ -173,13 +256,13 @@
   <div id="app-content" class="hidden">
     
     <!-- User Status & Logout -->
-    <div class="card user-bar">
+    <div class="card user-bar no-print">
       <span>Logged in as: <strong id="user-email-display"></strong></span>
       <button id="btn-logout" class="btn-danger" style="padding: 4px 10px; font-size: 0.8rem;">Log Out</button>
     </div>
 
     <!-- Collapsible Add Bill Card -->
-    <div class="card">
+    <div class="card no-print">
       <div class="collapsible-header" id="form-toggle">
         <h2>Add New Bill</h2>
         <span id="toggle-icon">➕</span>
@@ -201,7 +284,7 @@
     </div>
 
     <!-- Dynamic Target Date & Visibility Settings -->
-    <div class="card date-config">
+    <div class="card date-config no-print">
       <label for="targetDate"><strong>Highlight & Filter Bills Due By:</strong></label>
       <input type="date" id="targetDate">
       <div class="filter-toggle">
@@ -216,20 +299,42 @@
       </div>
     </div>
 
+    <!-- Running Total Summary Banner -->
+    <div class="card summary-card">
+      <div>
+        <div class="summary-title" id="summary-label">Total Due By Selected Date</div>
+        <div style="font-size: 0.75rem; color: #4b5563;" id="summary-count">0 unpaid bills</div>
+      </div>
+      <div class="summary-amount" id="running-total-display">$0.00</div>
+    </div>
+
+    <!-- Search & Export Controls Bar -->
+    <div class="card no-print" style="padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search bill name...">
+        <button id="btnClearSearch" class="clear-search-btn hidden" title="Clear search">✕</button>
+      </div>
+      <div class="export-bar">
+        <button id="btn-export-csv" class="btn-success" style="flex: 1; font-size: 0.8rem; padding: 6px;">📥 Export CSV</button>
+        <button id="btn-print" class="btn-secondary" style="flex: 1; font-size: 0.8rem; padding: 6px;">𝓅 Print Bills</button>
+      </div>
+    </div>
+
     <!-- Bills Display -->
     <div class="card">
       <div class="header-actions">
         <h2>Your Bills</h2>
-        <button class="btn-secondary" id="btn-refresh-all">🔄 Refresh Paid Bills</button>
+        <button class="btn-secondary no-print" id="btn-refresh-all">🔄 Refresh Paid Bills</button>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Done</th>
+            <th class="no-print">Done</th>
             <th>Name</th>
             <th>Due</th>
             <th>Amount</th>
-            <th>Actions</th>
+            <th class="no-print">Actions</th>
           </tr>
         </thead>
         <tbody id="bills-tbody"></tbody>
@@ -260,7 +365,7 @@
       where 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Your Configured Firebase Credentials
+    // Configured Firebase Credentials
     const firebaseConfig = {
       apiKey: "AIzaSyAYRv9V6k029iDyUkzfbtfm7JPrYVTrx-s",
       authDomain: "billapp-e4098.firebaseapp.com",
@@ -278,6 +383,7 @@
     let bills = [];
     let unsubscribeSnapshot = null;
     let editingId = null;
+    let searchQuery = '';
 
     let targetDate = localStorage.getItem('targetDate') || '';
     let showAll = JSON.parse(localStorage.getItem('showAll')) || false;
@@ -330,7 +436,7 @@
       signOut(auth);
     });
 
-    // Auth State Listener (Persistent Session Management)
+    // Auth State Listener
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       if (user) {
@@ -443,6 +549,61 @@
       editingId = null;
     };
 
+    // Search Controls
+    const searchInput = document.getElementById('searchInput');
+    const btnClearSearch = document.getElementById('btnClearSearch');
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      if (searchQuery.length > 0) {
+        btnClearSearch.classList.remove('hidden');
+      } else {
+        btnClearSearch.classList.add('hidden');
+      }
+      render();
+    });
+
+    btnClearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      searchQuery = '';
+      btnClearSearch.classList.add('hidden');
+      render();
+    });
+
+    // Export & Print Functionality
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      if (bills.length === 0) {
+        alert("No bill records to export.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Name,Due Date,Amount,Frequency,Paid Status\n";
+
+      bills.forEach(b => {
+        const row = [
+          `"${b.name.replace(/"/g, '""')}"`,
+          b.dueDate,
+          b.amount.toFixed(2),
+          b.frequency,
+          b.paid ? "Paid" : "Unpaid"
+        ];
+        csvContent += row.join(",") + "\n";
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `bill_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
     // Filter Controls
     document.getElementById('targetDate').addEventListener('change', (e) => {
       targetDate = e.target.value;
@@ -479,12 +640,17 @@
       return (diffTime / (1000 * 60 * 60 * 24)) <= 30;
     }
 
-    // Render Function
+    // Render Function & Running Total Calculation
     function render() {
       const tbody = document.getElementById('bills-tbody');
       tbody.innerHTML = '';
 
       let displayedBills = bills.filter(b => {
+        // Search Filter
+        if (searchQuery && !b.name.toLowerCase().includes(searchQuery)) {
+          return false;
+        }
+
         if (b.frequency !== 'monthly' && !b.paid && !showDistantNonMonthly) {
           if (!isWithin30Days(b.dueDate)) return false;
         }
@@ -492,17 +658,44 @@
         return isWithinTargetRange(b.dueDate) || b.paid;
       });
 
+      // Calculate Running Total of UNPAID Target/Filtered Bills
+      let targetUnpaidBills = displayedBills.filter(b => {
+        if (b.paid) return false;
+        if (!targetDate || showAll) return true;
+        return isWithinTargetRange(b.dueDate);
+      });
+
+      const runningTotal = targetUnpaidBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
+
+      // Update Running Total UI Card
+      document.getElementById('running-total-display').textContent = `$${runningTotal.toFixed(2)}`;
+      document.getElementById('summary-count').textContent = `${targetUnpaidBills.length} unpaid bill${targetUnpaidBills.length === 1 ? '' : 's'}`;
+      
+      const summaryLabel = document.getElementById('summary-label');
+      if (targetDate && !showAll) {
+        summaryLabel.textContent = `Total Due By ${targetDate}`;
+      } else {
+        summaryLabel.textContent = `Total Due (All Visible Unpaid)`;
+      }
+
       displayedBills.sort((a, b) => {
         if (a.paid !== b.paid) return a.paid ? 1 : -1;
         return new Date(a.dueDate) - new Date(b.dueDate);
       });
+
+      if (displayedBills.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align: center; color: #64748b; padding: 16px;">No bills found.</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
 
       displayedBills.forEach(b => {
         const tr = document.createElement('tr');
 
         if (editingId === b.id) {
           tr.innerHTML = `
-            <td>--</td>
+            <td class="no-print">--</td>
             <td>
               <input type="text" id="edit-name-${b.id}" class="edit-input" value="${b.name}">
               <select id="edit-freq-${b.id}" class="edit-input">
@@ -514,7 +707,7 @@
             </td>
             <td><input type="date" id="edit-dueDate-${b.id}" class="edit-input" value="${b.dueDate}"></td>
             <td><input type="number" step="0.01" id="edit-amount-${b.id}" class="edit-input" value="${b.amount}"></td>
-            <td>
+            <td class="no-print">
               <button class="action-btn edit-btn" onclick="saveEdit('${b.id}')">💾</button>
             </td>
           `;
@@ -528,14 +721,14 @@
 
           tr.className = `${paidClass} ${highlightClass}`.trim();
           tr.innerHTML = `
-            <td><input type="checkbox" ${b.paid ? 'checked' : ''} onclick="togglePaid('${b.id}')"></td>
+            <td class="no-print"><input type="checkbox" ${b.paid ? 'checked' : ''} onclick="togglePaid('${b.id}')"></td>
             <td>
               ${b.name}
               <span class="freq-badge">${b.frequency}</span>
             </td>
             <td>${b.dueDate}</td>
             <td>$${b.amount.toFixed(2)}</td>
-            <td>
+            <td class="no-print">
               <button class="action-btn edit-btn" title="Edit Bill" onclick="startEdit('${b.id}')">✏️</button>
               ${cycleBtn}
               <button class="action-btn delete-btn" onclick="deleteBill('${b.id}')">✕</button>
