@@ -32,7 +32,6 @@
     }
     h2 { margin: 0; font-size: 1.1rem; }
     
-    /* Collapsible Form Styling */
     .collapsible-header {
       display: flex;
       justify-content: space-between;
@@ -83,10 +82,15 @@
     }
     .filter-toggle {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      gap: 4px;
       margin-top: 6px;
       font-size: 0.85rem;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     table {
       width: 100%;
@@ -157,13 +161,19 @@
     </div>
   </div>
 
-  <!-- Dynamic Target Date Settings -->
+  <!-- Dynamic Target Date & Visibility Settings -->
   <div class="card date-config">
     <label for="targetDate"><strong>Highlight & Filter Bills Due By:</strong></label>
     <input type="date" id="targetDate">
     <div class="filter-toggle">
-      <input type="checkbox" id="showAllToggle">
-      <label for="showAllToggle">Show all upcoming bills (disable auto-filter)</label>
+      <div class="filter-item">
+        <input type="checkbox" id="showAllToggle">
+        <label for="showAllToggle">Show all upcoming bills (disable date filter)</label>
+      </div>
+      <div class="filter-item">
+        <input type="checkbox" id="showDistantNonMonthlyToggle">
+        <label for="showDistantNonMonthlyToggle">Show non-monthly bills due > 30 days away</label>
+      </div>
     </div>
   </div>
 
@@ -191,12 +201,14 @@
     let bills = JSON.parse(localStorage.getItem('bills')) || [];
     let targetDate = localStorage.getItem('targetDate') || '';
     let showAll = JSON.parse(localStorage.getItem('showAll')) || false;
+    let showDistantNonMonthly = JSON.parse(localStorage.getItem('showDistantNonMonthly')) || false;
     let editingId = null;
 
     if (targetDate) {
       document.getElementById('targetDate').value = targetDate;
     }
     document.getElementById('showAllToggle').checked = showAll;
+    document.getElementById('showDistantNonMonthlyToggle').checked = showDistantNonMonthly;
 
     // Collapsible Logic
     const formToggle = document.getElementById('form-toggle');
@@ -212,6 +224,7 @@
       localStorage.setItem('bills', JSON.stringify(bills));
       localStorage.setItem('targetDate', targetDate);
       localStorage.setItem('showAll', JSON.stringify(showAll));
+      localStorage.setItem('showDistantNonMonthly', JSON.stringify(showDistantNonMonthly));
       render();
     }
 
@@ -230,7 +243,6 @@
       saveData();
       e.target.reset();
       
-      // Auto collapse form after submission
       formContent.classList.remove('active');
       toggleIcon.textContent = '➕';
     });
@@ -242,6 +254,11 @@
 
     document.getElementById('showAllToggle').addEventListener('change', (e) => {
       showAll = e.target.checked;
+      saveData();
+    });
+
+    document.getElementById('showDistantNonMonthlyToggle').addEventListener('change', (e) => {
+      showDistantNonMonthly = e.target.checked;
       saveData();
     });
 
@@ -311,17 +328,34 @@
       return due >= today && due <= target;
     }
 
+    // Helper: Check if a date is within 30 days from today
+    function isWithin30Days(dueDateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(dueDateStr + 'T00:00:00');
+      const diffTime = due - today;
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      return diffDays <= 30;
+    }
+
     function render() {
       const tbody = document.getElementById('bills-tbody');
       tbody.innerHTML = '';
 
-      // 1. Filter: Show bills up to targetDate (or all if toggle enabled / no date set)
       let displayedBills = bills.filter(b => {
+        // 1. Check non-monthly 30-day filter threshold
+        if (b.frequency !== 'monthly' && !b.paid && !showDistantNonMonthly) {
+          if (!isWithin30Days(b.dueDate)) {
+            return false;
+          }
+        }
+
+        // 2. Check target date cutoff filter
         if (showAll || !targetDate) return true;
         return isWithinTargetRange(b.dueDate) || b.paid;
       });
 
-      // 2. Sort: Unpaid bills first (sorted by due date), Paid bills at the very bottom
+      // Sort: Unpaid first, then by due date
       displayedBills.sort((a, b) => {
         if (a.paid !== b.paid) {
           return a.paid ? 1 : -1;
