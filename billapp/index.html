@@ -30,12 +30,28 @@
       margin-bottom: 12px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    h2 { margin-top: 0; font-size: 1.1rem; }
+    h2 { margin: 0; font-size: 1.1rem; }
+    
+    /* Collapsible Form Styling */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .collapsible-content {
+      display: none;
+      margin-top: 12px;
+    }
+    .collapsible-content.active {
+      display: block;
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-bottom: 8px;
     }
     input, select, button {
       padding: 8px;
@@ -64,6 +80,13 @@
       flex-direction: column;
       gap: 6px;
       font-size: 0.9rem;
+    }
+    .filter-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 0.85rem;
     }
     table {
       width: 100%;
@@ -112,27 +135,36 @@
 </head>
 <body>
 
-  <!-- Input Form -->
+  <!-- Collapsible Add Bill Card -->
   <div class="card">
-    <h2>Add New Bill</h2>
-    <form id="bill-form" class="form-group">
-      <input type="text" id="name" placeholder="Bill Name (e.g., Electric)" required>
-      <input type="date" id="dueDate" required>
-      <input type="number" id="amount" step="0.01" placeholder="Amount ($)" required>
-      <select id="frequency">
-        <option value="monthly">Monthly</option>
-        <option value="quarterly">Quarterly</option>
-        <option value="annually">Annually</option>
-        <option value="one-time">One-time</option>
-      </select>
-      <button type="submit">Add Bill</button>
-    </form>
+    <div class="collapsible-header" id="form-toggle">
+      <h2>Add New Bill</h2>
+      <span id="toggle-icon">➕</span>
+    </div>
+    <div class="collapsible-content" id="form-content">
+      <form id="bill-form" class="form-group">
+        <input type="text" id="name" placeholder="Bill Name (e.g., Electric)" required>
+        <input type="date" id="dueDate" required>
+        <input type="number" id="amount" step="0.01" placeholder="Amount ($)" required>
+        <select id="frequency">
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="annually">Annually</option>
+          <option value="one-time">One-time</option>
+        </select>
+        <button type="submit">Add Bill</button>
+      </form>
+    </div>
   </div>
 
-  <!-- Dynamic Payday Highlight Settings -->
+  <!-- Dynamic Target Date Settings -->
   <div class="card date-config">
-    <label for="targetDate"><strong>Highlight Bills Due By:</strong></label>
+    <label for="targetDate"><strong>Highlight & Filter Bills Due By:</strong></label>
     <input type="date" id="targetDate">
+    <div class="filter-toggle">
+      <input type="checkbox" id="showAllToggle">
+      <label for="showAllToggle">Show all upcoming bills (disable auto-filter)</label>
+    </div>
   </div>
 
   <!-- Bills Display -->
@@ -158,15 +190,28 @@
   <script>
     let bills = JSON.parse(localStorage.getItem('bills')) || [];
     let targetDate = localStorage.getItem('targetDate') || '';
+    let showAll = JSON.parse(localStorage.getItem('showAll')) || false;
     let editingId = null;
 
     if (targetDate) {
       document.getElementById('targetDate').value = targetDate;
     }
+    document.getElementById('showAllToggle').checked = showAll;
+
+    // Collapsible Logic
+    const formToggle = document.getElementById('form-toggle');
+    const formContent = document.getElementById('form-content');
+    const toggleIcon = document.getElementById('toggle-icon');
+
+    formToggle.addEventListener('click', () => {
+      formContent.classList.toggle('active');
+      toggleIcon.textContent = formContent.classList.contains('active') ? '➖' : '➕';
+    });
 
     function saveData() {
       localStorage.setItem('bills', JSON.stringify(bills));
       localStorage.setItem('targetDate', targetDate);
+      localStorage.setItem('showAll', JSON.stringify(showAll));
       render();
     }
 
@@ -184,10 +229,19 @@
       bills.push(newBill);
       saveData();
       e.target.reset();
+      
+      // Auto collapse form after submission
+      formContent.classList.remove('active');
+      toggleIcon.textContent = '➕';
     });
 
     document.getElementById('targetDate').addEventListener('change', (e) => {
       targetDate = e.target.value;
+      saveData();
+    });
+
+    document.getElementById('showAllToggle').addEventListener('change', (e) => {
+      showAll = e.target.checked;
       saveData();
     });
 
@@ -201,7 +255,6 @@
       saveData();
     }
 
-    // Advance single bill cycle
     function computeNextCycle(bill) {
       if (bill.frequency === 'one-time') return bill;
 
@@ -228,13 +281,11 @@
       saveData();
     }
 
-    // Refresh All: Advance all paid, recurring bills
     function advanceAllPaid() {
       bills = bills.map(b => (b.paid && b.frequency !== 'one-time') ? computeNextCycle(b) : b);
       saveData();
     }
 
-    // Inline Editing Controls
     function startEdit(id) {
       editingId = id;
       render();
@@ -264,13 +315,24 @@
       const tbody = document.getElementById('bills-tbody');
       tbody.innerHTML = '';
 
-      bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      // 1. Filter: Show bills up to targetDate (or all if toggle enabled / no date set)
+      let displayedBills = bills.filter(b => {
+        if (showAll || !targetDate) return true;
+        return isWithinTargetRange(b.dueDate) || b.paid;
+      });
 
-      bills.forEach(b => {
+      // 2. Sort: Unpaid bills first (sorted by due date), Paid bills at the very bottom
+      displayedBills.sort((a, b) => {
+        if (a.paid !== b.paid) {
+          return a.paid ? 1 : -1;
+        }
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
+
+      displayedBills.forEach(b => {
         const tr = document.createElement('tr');
 
         if (editingId === b.id) {
-          // Inline Editing Row View
           tr.innerHTML = `
             <td>--</td>
             <td>
@@ -289,7 +351,6 @@
             </td>
           `;
         } else {
-          // Standard Row View
           const isHighlighted = !b.paid && isWithinTargetRange(b.dueDate);
           const highlightClass = isHighlighted ? 'target-highlight' : '';
           const paidClass = b.paid ? 'paid' : '';
